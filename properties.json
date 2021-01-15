@@ -1,6 +1,7 @@
 {
     "LAST_UPDATE": "2021-01-15T05:36:18.773Z",
     "BASE_URL": "/home/github/transfer-to-pixel1/",
+    "SERVER": "localhost:3000",
     "targets": [
         "/test"
     ]
