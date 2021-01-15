@@ -1,62 +1,63 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-
-function log( obj ) {
-  console.log( JSON.stringify( obj, null, 2) )
-}
+const log = require('./logger.js');
 
 http.createServer( (req, res) => {
-   
-  log( req.headers )
-  log( req.method )
+  try {
+    log.info( '\n' );
+    log.info( new Date() );
+    log.info( req.headers );
+    log.info( req.method );
 
-  res.setHeader('Access-Control-Allow-Headers', '*');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Access-Control-Allow-Origin', '*');
 
-  if( req.method.toUpperCase() === 'OPTIONS' ){
-    res.end();
-    return;
-  }
+    if( req.method.toUpperCase() === 'OPTIONS' ){
+      res.end();
+      return;
+    }
 
-  if( !/image/.test(req.headers['content-type']) ){
-    log( 'invalid content-type' );
-    res.writeHead( 400 ).end();
-    return;
-  }
+    if( !/image/.test(req.headers['content-type']) ){
+      log.err( 'invalid content-type' );
+      res.writeHead( 400 ).end();
+      return;
+    }
 
-  if( req.method.toUpperCase() !== 'POST' ){
-    log( 'invalid method ' + req.method );
-    res.writeHead( 405 ).end();
-    return;
-  }
+    if( req.method.toUpperCase() !== 'POST' ){
+      log.err( 'invalid method' );
+      res.writeHead( 405 ).end();
+      return;
+    }
 
-  const data = [];
-  req
-    .on('data', d => data.push(d) )
-    .on('end', _=> {
+    const data = [];
+    req.on('data', d => data.push(d) );
+    req.on('end', _=> {
       try {
         const image = Buffer.concat( data );
-        const [, filePath] = req.headers['content-disposition'].match(/filename="(.+)"/) || [];
+        const [, filePath] = req.headers['content-disposition'].match(/filename="(.+)"/);
         if( !filePath ){
-          log('filename not provided');
-          log(req.headers['content-disposition'])
+          log.err('filename not provided');
           res.writeHead( 415 ).end();
           return;
         }
         saveImage( filePath, image );
-
       } catch(e) {
+        log.err('Failed while save image ' + e);
         res.writeHead( 500 ).end(e);
-        log('Failed while save image ' + e);
         return;
       }
+
       res.writeHead( 200 ).end();
     });
-
+  } catch(e) {
+    log.err('Internal server error' + e);
+    res.writeHead( 500 ).end(e);
+  }
 }).listen( 3000 );
 
-console.log( 'Running' );
+log.info( 'Server is Running' );
+log.info( new Date() );
 
 function saveImage( filePath, data ){
   const [fileDir, name] = filePath.split( path.sep );
