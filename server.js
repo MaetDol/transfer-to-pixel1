@@ -1,4 +1,5 @@
 const http = require('http');
+const fs = require('fs');
 
 function log( obj ) {
   console.log( JSON.stringify( obj, null, 2) )
@@ -29,13 +30,21 @@ http.createServer( (req, res) => {
     return;
   }
 
-  let data = '';
+  const data = [];
   req
-    .on('data', d => data += d )
+    .on('data', d => data.push(d) )
     .on('end', _=> {
-      const keys = Object.keys( data );
+      const image = Buffer.concat( data );
+      const [, filename] = req.headers['content-disposition'].match(/filename="(.+)"/) || [];
+      if( !filename ){
+        log('filename not provided');
+        log(req.headers['content-disposition'])
+        res.writeHead( 415 ).end();
+        return;
+      }
+      fs.appendFileSync(`./${filename}`, image, {flag: 'w'});
 
-      res.writeHead( 200, {'Content-type': 'image/png'}).end( data );
+      res.writeHead( 200 ).end();
     });
 
 }).listen( 3000 );
