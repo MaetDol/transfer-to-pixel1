@@ -23,7 +23,7 @@ http.createServer( (req, res) => {
       return;
     }
 
-    if( !/image/.test(req.headers['content-type']) ){
+    if( !/image|video|audio/.test(req.headers['content-type']) ){
       log.err( 'invalid content-type' );
       res.writeHead( 400 ).end();
       return;
@@ -39,16 +39,16 @@ http.createServer( (req, res) => {
     req.on('data', d => data.push(d) );
     req.on('end', _=> {
       try {
-        const image = Buffer.concat( data );
+        const file = Buffer.concat( data );
         const [, filePath] = req.headers['content-disposition'].match(/filename="(.+)"/);
         if( !filePath ){
           log.err('filename not provided');
           res.writeHead( 415 ).end();
           return;
         }
-        saveImage( filePath, image );
+        save( filePath, file );
       } catch(e) {
-        log.err('Failed while save image ' + e);
+        log.err('Failed while save file ' + e);
         res.writeHead( 500 ).end();
         return;
       }
@@ -56,7 +56,7 @@ http.createServer( (req, res) => {
       res.writeHead( 200 ).end();
     });
   } catch(e) {
-    log.err('Internal server error' + e);
+    log.err('Internal server error ' + e);
     res.writeHead( 500 ).end();
   }
 }).listen( 3000 );
@@ -64,15 +64,17 @@ http.createServer( (req, res) => {
 log.info( 'Server is Running' );
 log.info( new Date() );
 
-function saveImage( filePath, image ){
-  const [fileDir, name] = filePath.split( path.sep );
-  const dir = path.resolve( ROOT, fileDir );
+function save( filePath, file ){
+  log.info( filePath )
+  const name = path.basename( filePath );
+  const dir = path.resolve( ROOT, path.dirname(filePath) );
+  log.info( dir );
   if( !fs.existsSync(dir) ){
     fs.mkdirSync( dir );  
   }
   fs.appendFileSync( 
     path.resolve(dir, name), 
-    image, 
+    file, 
     {flag: 'w'}
   );
 }
