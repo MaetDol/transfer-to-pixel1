@@ -3,6 +3,11 @@ const fs = require('fs');
 const path = require('path');
 const log = require('./logger.js');
 
+const {ROOT} = JSON.parse(fs.readFileSync(
+  path.resolve( __dirname, './server.properties.json' ),
+  'UTF-8',
+));
+
 http.createServer( (req, res) => {
   try {
     log.info( '\n' );
@@ -44,7 +49,7 @@ http.createServer( (req, res) => {
         saveImage( filePath, image );
       } catch(e) {
         log.err('Failed while save image ' + e);
-        res.writeHead( 500 ).end(e);
+        res.writeHead( 500 ).end();
         return;
       }
 
@@ -52,16 +57,16 @@ http.createServer( (req, res) => {
     });
   } catch(e) {
     log.err('Internal server error' + e);
-    res.writeHead( 500 ).end(e);
+    res.writeHead( 500 ).end();
   }
 }).listen( 3000 );
 
 log.info( 'Server is Running' );
 log.info( new Date() );
 
-function saveImage( filePath, data ){
+function saveImage( filePath, image ){
   const [fileDir, name] = filePath.split( path.sep );
-  const dir = path.resolve('./', fileDir);
+  const dir = path.resolve( ROOT, fileDir );
   if( !fs.existsSync(dir) ){
     fs.mkdirSync( dir );  
   }
