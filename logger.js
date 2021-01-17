@@ -29,10 +29,9 @@ function write( str ) {
     fs.mkdirSync( dirPath );
   }
 
-  str += '\n'
   fs.writeFileSync( 
     path.resolve( dirPath, './0117.log' ),
-    str, 
+    str + '\n', 
     {flag:'a'},
   );
   console.log( str );
