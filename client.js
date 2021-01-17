@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+const log = require('./logger.js');
 
 const propPath = path.resolve( __dirname, './properties.json' );
 const { 
@@ -11,12 +12,31 @@ const {
   targets
 } = readProps( propPath );
 
-targets
-  .map( d => lookupNewFile(path.join( BASE_URL, d )) )
-  .flat()
-  .forEach( send );
+log.info( new Date() );
+log.info('Start lookup new files');
+const triedFiles = targets
+  .map( d => {
+    let newFiles = [];
+    try {
+      newFiles = lookupNewFile(path.join( BASE_URL, d ));
+    } catch(e){
+      log.err('Failed while lookup new file ' + e);
+    }
+    return newFiles;
+  }).flat();
 
-//setProps({ LAST_UPDATE: new Date(), BASE_URL, targets }, propPath );
+const failedFiles = triedFiles.filter( d => {
+  try {
+    send(d); 
+  } catch(e){
+    log.err(`Failed send file: ${d}, because ${e}`);
+    return true;
+  }
+  return false;
+});
+
+log.info(`Tried ${triedFiles.length} files, failed ${failedFiles.length} files.`);
+setProps({ LAST_UPDATE: new Date(), BASE_URL, targets }, propPath );
 return 0;
 
 function readProps( path ){
@@ -39,7 +59,7 @@ function isNewer( target ){
 }
 
 function contentTypeOf( ext ){
-  if( ext.match(/jpe?g|gif|png/bmp/tiff/i) ){
+  if( ext.match(/jpe?g|gif|png|bmp|tiff/i) ){
     return 'image';
   }
   if( ext.match(/mp4[pv]?|mp3|webm|avi|wmv|/) ){
@@ -66,13 +86,16 @@ function send( filePath ){
     const data = [];
     res.on('data', d => data.push(d) );
     res.on('end', _=> {
-      console.log('Maybe successfuly done');
-      console.log( data );
+      if( res.statusCode !== 200 ){
+        log.err(`Tried ${filename}, but received invalid status code! ${res.statusCode}`);
+      } else {
+        log.info(`Successfully sended file.`);
+      }
     });
   });
 
   req.on('error', e => {
-    console.log('Got an error: ', e);
+    log.err('Got an error: ', e);
   });
 
   const file = fs.readFileSync( filePath );
