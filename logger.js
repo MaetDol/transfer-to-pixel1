@@ -5,7 +5,7 @@ const {
   LOG_DIR,
   LOGGING,
 } = JSON.parse( fs.readFileSync(
-  path.resolve( __dirname, './server.properties.json' ),
+  path.resolve( __dirname, './properties.json' ),
   'UTF-8',
 ));
 

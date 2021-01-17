@@ -1,8 +1,13 @@
 {
-    "LAST_UPDATE": "2020-01-15T18:28:28.740Z",
-    "BASE_URL": "/home/github/transfer-to-pixel1/",
     "SERVER": "localhost",
+    "PORT": "9000",
+    "LAST_UPDATE": "2020-01-17T14:54:10.156Z",
+    "BASE_URL": "/home/github/transfer-to-pixel1/dir",
     "targets": [
-        "/test"
-    ]
+        "/movies",
+        "dir"
+    ],
+    "SERVER_ROOT": "/home/github/transfer-to-pixel1/dir",
+    "LOG_DIR": "/home/github/transfer-to-pixel1/",
+    "LOGGING": true
 }

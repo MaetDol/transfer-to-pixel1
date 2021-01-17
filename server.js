@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const log = require('./logger.js');
 
-const {ROOT} = JSON.parse(fs.readFileSync(
-  path.resolve( __dirname, './server.properties.json' ),
+const {SERVER_ROOT: ROOT, PORT} = JSON.parse(fs.readFileSync(
+  path.resolve( __dirname, './properties.json' ),
   'UTF-8',
 ));
 
@@ -59,7 +59,7 @@ http.createServer( (req, res) => {
     log.err('Internal server error ' + e);
     res.writeHead( 500 ).end();
   }
-}).listen( 3000 );
+}).listen( PORT );
 
 log.info( 'Server is Running' );
 log.info( new Date() );
