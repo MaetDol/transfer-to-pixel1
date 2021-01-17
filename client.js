@@ -7,6 +7,7 @@ const {
   LAST_UPDATE,
   BASE_URL,
   SERVER,
+  PORT,
   targets
 } = readProps( propPath );
 
@@ -37,15 +38,28 @@ function isNewer( target ){
   return LAST_UPDATE < target;
 }
 
+function contentTypeOf( ext ){
+  if( ext.match(/jpe?g|gif|png/bmp/tiff/i) ){
+    return 'image';
+  }
+  if( ext.match(/mp4[pv]?|mp3|webm|avi|wmv|/) ){
+    return 'video';
+  }
+
+  throw 'Not supported file type';
+}
+
 function send( filePath ){
   const [lastDir, filename] = filePath.split( path.sep ).slice( -2 );
-  console.log( lastDir, filename )
+  const ext = path.extname( filename ).slice(1);
+  const contentType = contentTypeOf( ext );
+
   const req = http.request({
     hostname: SERVER,
     method: 'POST',
-    port: '3000',
+    port: PORT,
     headers: {
-      'Content-Type': 'image/png',
+      'Content-Type': `${contentType}/${ext}`,
       'Content-Disposition': `attachment; filename="${path.join( lastDir, filename )}"`,
     },
   }, res => {
