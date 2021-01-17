@@ -10,8 +10,9 @@ const {
   SERVER,
   PORT,
   targets
-} = readProps( propPath );
+} = props = readProps( propPath );
 
+log.info('\n\n');
 log.info( new Date() );
 log.info('Start lookup new files');
 const triedFiles = targets
@@ -27,6 +28,7 @@ const triedFiles = targets
 
 const failedFiles = triedFiles.filter( d => {
   try {
+    log.info(`Sending file ${d}..`);
     send(d); 
   } catch(e){
     log.err(`Failed send file: ${d}, because ${e}`);
@@ -36,7 +38,7 @@ const failedFiles = triedFiles.filter( d => {
 });
 
 log.info(`Tried ${triedFiles.length} files, failed ${failedFiles.length} files.`);
-setProps({ LAST_UPDATE: new Date(), BASE_URL, targets }, propPath );
+setProps({...props, LAST_UPDATE: new Date()}, propPath );
 return 0;
 
 function readProps( path ){
@@ -88,14 +90,15 @@ function send( filePath ){
     res.on('end', _=> {
       if( res.statusCode !== 200 ){
         log.err(`Tried ${filename}, but received invalid status code! ${res.statusCode}`);
-      } else {
-        log.info(`Successfully sended file.`);
       }
     });
   });
 
   req.on('error', e => {
-    log.err('Got an error: ', e);
+    if( e ){
+      console.log(e)
+      log.err('Got an error: ', e);
+    }
   });
 
   const file = fs.readFileSync( filePath );
