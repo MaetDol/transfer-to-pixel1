@@ -64,7 +64,7 @@ function contentTypeOf( ext ){
   if( ext.match(/jpe?g|gif|png|bmp|tiff/i) ){
     return 'image';
   }
-  if( ext.match(/mp4[pv]?|mp3|webm|avi|wmv/) ){
+  if( ext.match(/mp4[pv]?|mp3|webm|avi|wmv/i) ){
     return 'video';
   }
 
