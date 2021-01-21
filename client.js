@@ -18,17 +18,7 @@ const {
 log.info('\n\n');
 log.info( new Date() );
 log.info('Start lookup new files');
-const triedFiles = targets.map( d => {
-  let newFiles = [];
-  try {
-    newFiles = lookupNewFile(path.join( BASE_URL, d ));
-  } catch(e){
-    log.err('Failed while lookup new file ' + e);
-  }
-  return newFiles;
-}).flat();
-
-const failedFiles = triedFiles.filter( d => {
+const failedFiles = getNewFiles( targets ).filter( d => {
   try {
     log.info(`Sending file ${d}..`);
     send(d); 
@@ -39,9 +29,23 @@ const failedFiles = triedFiles.filter( d => {
   return false;
 });
 
-log.info(`Tried ${triedFiles.length} files, failed ${failedFiles.length} files.`);
+pool.onClear( _=> 
+  log.info(`Tried ${triedFiles.length} files, failed ${failedFiles.length} files.`)
+);
 setProps({...props, LAST_UPDATE: new Date()}, propPath );
 return 0;
+
+function getNewFiles( dirs ){
+  return dirs.map( d => {
+    let newFiles = [];
+    try {
+      newFiles = lookupNewFile(path.join( BASE_URL, d ));
+    } catch(e){
+      log.err('Failed while lookup new file ' + e);
+    }
+    return newFiles;
+  }).flat();
+}
 
 function readProps( path ){
   const propFile = fs.readFileSync( path, 'UTF-8' );
@@ -82,15 +86,21 @@ function send( filePath ){
     'Content-Disposition': `attachment; filename="${path.join( lastDir, filename )}"`,
   };
 
-  const failLog = `Tried ${filename}, but received invalid status code! ${res.statusCode}`;
   const file = fs.readFileSync( filePath );
 
   const size = fs.statSync( filePath ).size;
-  pool.push( _=> asyncRequest(headers, file, failLog), size );
+  return new Promise((resolve, reject) => {
+    pool.push(
+      _=> asyncRequest(headers, file)..then(resolve).catch( code => {
+        log.err(`Tried ${filename}, but received invalid status code: ${code}`)
+        reject();
+      }), size 
+    )
+  );
 }
 
-function asyncRequest( header, content, failLog ){
-  return new Promise( resolve => {
+function asyncRequest( header, content ){
+  return new Promise(( resolve, reject ) => {
     const req = http.request({
       hostname: SERVER,
       method: 'POST',
@@ -99,7 +109,7 @@ function asyncRequest( header, content, failLog ){
     }, res => {
       res.on('data', d => 0 );
       res.on('end', _=> {
-        if( res.statusCode !== 200 ) log.err( failLog );
+        if( res.statusCode !== 200 ) reject( res.statusCode );
         resolve();
       });
     });
