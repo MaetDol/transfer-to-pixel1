@@ -3,6 +3,7 @@ module.exports = class PromisePool {
   constructor( limit ){
     this.limit = limit;
     this.onBoardSize = 0;
+    this.clearHandler = [];
     this.pool = [];
   }
 
@@ -27,10 +28,18 @@ module.exports = class PromisePool {
   }
 
   next(){
-    const { pool, limit } = this;
+    const { pool, limit, clearHandler } = this;
     while( pool.length && this.onBoardSize < limit ){
+      if( !pool.length ){
+        this.clearHandler.forEach( fnc => fnc() );
+        break;
+      }
       this.consume( pool.shift() );
     }
+  }
+
+  onClear( fnc ){
+    this.clearHandler.push( fnc );
   }
   
 };
