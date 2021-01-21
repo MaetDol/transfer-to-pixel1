@@ -1,35 +1,34 @@
 module.exports = class PromisePool {
 
-  constructor( concurrency ){
-    this.concurrency = concurrency;
-    this.onBoard = [];
+  constructor( limit ){
+    this.limit = limit;
+    this.onBoardSize = 0;
     this.pool = [];
   }
 
-  push( producer ){
-    const { pool, onBoard, concurrency } = this;
+  push( producer, size ){
+    const { pool, onBoardSize, limit } = this;
 
-    if( onBoard.length < concurrency ){
-      this.consume( producer );
+    if( onBoardSize < limit ){
+      this.consume([ producer, size ]);
     } else {
-      pool.push( producer );
+      pool.push([ producer, size ]);
     }
   }
 
-  consume( producer ){
-    const { onBoard } = this;
+  consume([ producer, size ]){
     const promise = producer(); 
 
-    onBoard.push( promise );
+    this.onBoardSize += size;
     promise.then( _=> {
-      onBoard.splice( onBoard.indexOf(promise), 1 );
-      this.next( promise );
+      this.onBoardSize -= size;
+      this.next();
     });
   }
 
-  next( thisPromise ){
-    const { pool, onBoard } = this;
-    if( pool.length ){
+  next(){
+    const { pool, limit } = this;
+    while( pool.length && this.onBoardSize < limit ){
       this.consume( pool.shift() );
     }
   }
