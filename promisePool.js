@@ -15,16 +15,22 @@ module.exports = class PromisePool {
     } else {
       pool.push([ producer, size ]);
     }
+
+    return new Promise((resolve, reject) => {
+      producer.resolve = resolve;
+      producer.reject = reject;
+    })
   }
 
   consume([ producer, size ]){
     const promise = producer(); 
 
     this.onBoardSize += size;
-    promise.then( _=> {
+    promise.then( d => {
+      producer.resolve(d);
       this.onBoardSize -= size;
       this.next();
-    });
+    }).catch( producer.reject );
   }
 
   next(){
