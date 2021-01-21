@@ -90,13 +90,13 @@ function send( filePath ){
 
   const size = fs.statSync( filePath ).size;
   return new Promise((resolve, reject) => {
-    pool.push(
-      _=> asyncRequest(headers, file)..then(resolve).catch( code => {
-        log.err(`Tried ${filename}, but received invalid status code: ${code}`)
-        reject();
-      }), size 
-    )
-  );
+      pool.push(
+        _=> asyncRequest(headers, file).then(resolve).catch( code => {
+          log.err(`Tried ${filename}, but received invalid status code: ${code}`)
+          reject();
+        }), size 
+      )
+    });
 }
 
 function asyncRequest( header, content ){
