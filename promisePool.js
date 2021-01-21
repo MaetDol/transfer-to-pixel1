@@ -36,11 +36,11 @@ module.exports = class PromisePool {
   next(){
     const { pool, limit, clearHandler } = this;
     while( pool.length && this.onBoardSize < limit ){
-      if( !pool.length ){
-        this.clearHandler.forEach( fnc => fnc() );
-        break;
-      }
       this.consume( pool.shift() );
+    }
+
+    if( !pool.length ){
+      clearHandler.forEach( fnc => fnc() );
     }
   }
 
