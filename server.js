@@ -46,8 +46,8 @@ http.createServer( (req, res) => {
           res.writeHead( 415 ).end();
           return;
         }
-        const filePath = decodeURI( encodedName );
-        save( filePath, file );
+        const filename = decodeURI( encodedName );
+        save( filename, file );
       } catch(e) {
         log.err('Failed while save file ' + e);
         res.writeHead( 500 ).end();
@@ -65,10 +65,10 @@ http.createServer( (req, res) => {
 log.info( 'Server is Running' );
 log.info( new Date() );
 
-function save( filePath, file ){
-  log.info( filePath )
-  const name = path.basename( filePath );
-  const dir = path.resolve( ROOT, path.dirname(filePath) );
+function save( filename, file ){
+  log.info( filename )
+  const name = path.basename( filename );
+  const dir = path.resolve( ROOT, path.dirname(filename) );
   log.info( dir );
   if( !fs.existsSync(dir) ){
     fs.mkdirSync( dir );  
