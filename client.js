@@ -63,10 +63,6 @@ function setProps( prop, path ){
   fs.writeFileSync( path, JSON.stringify(prop, null, 4) );
 }
 
-function isNewer( target ){
-  return LAST_UPDATE < target;
-}
-
 function contentTypeOf( ext ){
   if( ext.match(/jpe?g|gif|png|bmp|tiff/i) ){
     return 'image';
@@ -129,7 +125,7 @@ function lookupNewFile( dir, result=[] ){
     .forEach( fp => {
       const fullPath = path.join( dir, fp );
       const stat = fs.statSync( fullPath );
-      if( !isNewer(stat.ctime) ) return;
+      if( LAST_UPDATE > stat.ctime ) return;
 
       if( stat.isDirectory() ){
         return lookupNewFile(fullPath, result);
