@@ -4,8 +4,8 @@ const http = require('http');
 const log = require('./logger.js');
 const PromisePool = require('./promisePool.js');
 
-// 300 MB
-const promisePool = new PromisePool( 1024 * 1024 * 300 );
+log.info( new Date() );
+const promisePool = new PromisePool( 300 * 1024 * 1024 );
 const propPath = path.resolve( __dirname, './properties.json' );
 const { 
   LAST_UPDATE,
@@ -15,13 +15,9 @@ const {
   targets
 } = props = readProps( propPath );
 
-log.info('\n\n');
-log.info( new Date() );
-log.info('Start lookup new files');
 const triedFiles = getNewFiles( targets );
 const failedFiles = triedFiles.filter( d => {
   try {
-    log.info(`Sending file ${d}..`);
     send(d); 
   } catch(e){
     log.err(`Failed send file: ${d}, because ${e}`);
@@ -75,21 +71,18 @@ function contentTypeOf( ext ){
 }
 
 function send( filePath ){
-  const [lastDir, filename] = filePath.split( path.sep ).slice( -2 );
+  const filename = filePath.split( path.sep ).pop();
   const ext = path.extname( filename ).slice(1);
-  const contentType = contentTypeOf( ext );
   const headers = {
-    'Content-Type': `${contentType}/${ext}`,
+    'Content-Type': `${contentTypeOf( ext )}/${ext}`,
     'Content-Disposition': `attachment; filename=\"${encodeURI(filename)}\"`,
   };
 
   const file = fs.readFileSync( filePath );
   const size = fs.statSync( filePath ).size;
-  log.info(`Start upload.. ${(size / 1024).toFixed(2)}kb, ${(size / 1024 / 1024).toFixed(2)}mb`);
   return promisePool
     .push( _=> asyncRequest(headers, file), size )
-    .then( code => log.info(`Sending is complete with code ${code}`) )
-    .catch( code => log.err(`Tried ${filename}, but received invalid status code: ${code}`) );
+    .catch( code => log.err(`Upload "${filename}", ${readableSize( size )}, but got an : ${code}`) );
 }
 
 function asyncRequest( header, content ){
@@ -100,10 +93,10 @@ function asyncRequest( header, content ){
       port: PORT,
       headers: header,
     }, res => {
-      res.on('data', d => 0 );
+      res.on('data', _=>0 );
       res.on('end', _=> {
         if( res.statusCode !== 200 ) reject( res.statusCode );
-        resolve();
+        resolve( res.statusCode );
       });
     });
 
@@ -137,4 +130,12 @@ function lookupNewFile( dir, result=[] ){
   return result;
 }
 
-
+function readableSize( size ){
+  const SUFFIX_SET = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let suffix = 0;
+  while( size >= 1024 ){
+    size /= 1024;
+    suffix++;
+  }
+  return `${size.toFixed(2)} ${SUFFIX_SET[suffix]}`;
+}
