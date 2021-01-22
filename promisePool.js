@@ -9,6 +9,10 @@ module.exports = class PromisePool {
 
   push( producer, size ){
     const { pool, onBoardSize, limit } = this;
+    const promise = new Promise((resolve, reject) => {
+      producer.resolve = resolve;
+      producer.reject = reject;
+    })
 
     if( onBoardSize < limit ){
       this.consume([ producer, size ]);
@@ -16,31 +20,29 @@ module.exports = class PromisePool {
       pool.push([ producer, size ]);
     }
 
-    return new Promise((resolve, reject) => {
-      producer.resolve = resolve;
-      producer.reject = reject;
-    })
+    return promise;
   }
 
   consume([ producer, size ]){
-    const promise = producer(); 
-
     this.onBoardSize += size;
-    promise.then( d => {
-      producer.resolve(d);
+
+    producer().then( d => {
       this.onBoardSize -= size;
-      this.next();
-    }).catch( producer.reject );
+      if( !this.pool.length && !this.onBoardSize ){
+        this.clearHandler.forEach( fnc => fnc() );
+      } else {
+        this.next();
+      }
+      return d;
+    })
+    .then( producer.resolve )
+    .catch( producer.reject );
   }
 
   next(){
-    const { pool, limit, clearHandler } = this;
+    const { pool, limit } = this;
     while( pool.length && this.onBoardSize < limit ){
       this.consume( pool.shift() );
-    }
-
-    if( !pool.length ){
-      clearHandler.forEach( fnc => fnc() );
     }
   }
 
