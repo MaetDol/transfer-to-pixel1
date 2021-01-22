@@ -18,7 +18,8 @@ const {
 log.info('\n\n');
 log.info( new Date() );
 log.info('Start lookup new files');
-const failedFiles = getNewFiles( targets ).filter( d => {
+const triedFiles = getNewFiles( targets );
+const failedFiles = triedFiles.filter( d => {
   try {
     log.info(`Sending file ${d}..`);
     send(d); 
@@ -29,7 +30,7 @@ const failedFiles = getNewFiles( targets ).filter( d => {
   return false;
 });
 
-pool.onClear( _=> 
+promisePool.onClear( _=> 
   log.info(`Tried ${triedFiles.length} files, failed ${failedFiles.length} files.`)
 );
 setProps({...props, LAST_UPDATE: new Date()}, propPath );
@@ -87,16 +88,12 @@ function send( filePath ){
   };
 
   const file = fs.readFileSync( filePath );
-
   const size = fs.statSync( filePath ).size;
-  return new Promise((resolve, reject) => {
-      pool.push(
-        _=> asyncRequest(headers, file).then(resolve).catch( code => {
-          log.err(`Tried ${filename}, but received invalid status code: ${code}`)
-          reject();
-        }), size 
-      )
-    });
+  log.info(`Start upload.. ${(size / 1024).toFixed(2)}kb, ${(size / 1024 / 1024).toFixed(2)}mb`);
+  return promisePool
+    .push( _=> asyncRequest(headers, file), size )
+    .then( code => log.info(`Sending is complete with code ${code}`) )
+    .catch( code => log.err(`Tried ${filename}, but received invalid status code: ${code}`) );
 }
 
 function asyncRequest( header, content ){
@@ -116,8 +113,8 @@ function asyncRequest( header, content ){
 
     req.on('error', e => {
       if( e ){
-        console.log(e)
         log.err(`Failed req: ${e}`);
+        reject(e);
       }
     });
 
