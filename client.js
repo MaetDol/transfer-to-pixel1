@@ -15,21 +15,18 @@ const {
   targets
 } = props = readProps( propPath );
 
-const triedFiles = getNewFiles( targets );
-const failedFiles = triedFiles.filter( d => {
-  try {
-    send(d); 
-  } catch(e){
-    log.err(`Failed send file: ${d}, because ${e}`);
-    return true;
-  }
-  return false;
-});
+Promise.all( getNewFiles( targets ).map( d =>
+    send(d).catch( e => {
+      log.err(`Failed send file: ${d}, because ${e}`);
+      return null;
+    })
+))
+.then( results => {
+  const faileds = results.filter( v => v === null );
+  log.info(`Tried ${results.length} files, failed ${faileds.length} files.`)
+})
 
-promisePool.onClear( _=> 
-  log.info(`Tried ${triedFiles.length} files, failed ${failedFiles.length} files.`)
-);
-setProps({...props, LAST_UPDATE: new Date()}, propPath );
+//setProps({...props, LAST_UPDATE: new Date()}, propPath );
 return 0;
 
 function getNewFiles( dirs ){
@@ -70,7 +67,7 @@ function contentTypeOf( ext ){
   throw 'Not supported file type';
 }
 
-function send( filePath ){
+async function send( filePath ){
   const filename = filePath.split( path.sep ).pop();
   const ext = path.extname( filename ).slice(1);
   const headers = {
@@ -82,7 +79,11 @@ function send( filePath ){
   const size = fs.statSync( filePath ).size;
   return promisePool
     .push( _=> asyncRequest(headers, file), size )
-    .catch( code => log.err(`Upload "${filename}", ${readableSize( size )}, but got an : ${code}`) );
+    .then( _=> true )
+    .catch( code => {
+      log.err(`Upload "${filename}", ${readableSize( size )}, but got an : ${code}`) 
+      return null;
+    });
 }
 
 function asyncRequest( header, content ){
@@ -101,10 +102,7 @@ function asyncRequest( header, content ){
     });
 
     req.on('error', e => {
-      if( e ){
-        log.err(`Failed req: ${e}`);
-        reject(e);
-      }
+      if( e ) reject(e);
     });
 
     req.write( content );
