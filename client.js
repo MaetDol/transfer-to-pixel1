@@ -84,7 +84,7 @@ function send( filePath ){
   const contentType = contentTypeOf( ext );
   const headers = {
     'Content-Type': `${contentType}/${ext}`,
-    'Content-Disposition': `attachment; filename="${path.join( lastDir, filename )}"`,
+    'Content-Disposition': `attachment; filename=\"${encodeURI(filename)}\"`,
   };
 
   const file = fs.readFileSync( filePath );
