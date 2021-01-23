@@ -16,12 +16,15 @@ const {
   targets
 } = props;
 
-Promise.all( getNewFiles(targets).map( d =>
-  send(d).catch( e => {
-    log.err(`Failed send file: ${d}, because ${e}`);
-    return null;
-  })
-))
+Promise.all( getNewFiles(targets).map( d => {
+  log.info(`Sending file "${d}"..`, true);
+  return send(d)
+    .finally(_=> log.info(`Upload is done "${d}"`, true))
+    .catch( e => {
+      log.err(`Failed send file: ${d}, because ${e}`);
+      return null;
+    });
+}))
 .then( results => {
   const faileds = results.filter( v => v === null );
   log.info(`Tried ${results.length} files, failed ${faileds.length} files.`)
