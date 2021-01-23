@@ -29,7 +29,7 @@ function write( str, displayOnly ) {
   if( !LOGGING ) return;
 
   if( displayOnly ){
-    console.log(`${str}\n`);
+    console.log(`${str}`);
     return;
   }
 
