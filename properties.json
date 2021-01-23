@@ -6,11 +6,8 @@
         "/Movies/",
         "dir"
     ],
-
     "ROOT": "/storage/emulated/0/",
     "UPLOAD_DIR": "/DCIM/transfered/",
-
     "LOGGING": true,
-    "LOG_DISPLAY_ONLY": "INFO",
     "LOG_DIR": "/Download/logs"
 }

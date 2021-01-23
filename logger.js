@@ -17,18 +17,18 @@ const ERROR = 'ERROR';
 
 // TODO: write like 16.log file by each date
 module.exports = {
-  info: obj => {
-    write( `[INFO] ${stringify( obj )}`, INFO );
+  info: (obj, isDisplayOnly) => {
+    write( `[INFO] ${stringify( obj )}`, isDisplayOnly );
   },
-  err: obj => {
-    write( `[ERROR] ${stringify( obj )}`, ERROR );
+  err: (obj, isDisplayOnly) => {
+    write( `[ERROR] ${stringify( obj )}`, isDisplayOnly );
   }
 };
 
-function write( str, level ) {
+function write( str, displayOnly ) {
   if( !LOGGING ) return;
 
-  if( LOG_DISPLAY_ONLY === level ){
+  if( displayOnly ){
     console.log(`${str}\n`);
     return;
   }
