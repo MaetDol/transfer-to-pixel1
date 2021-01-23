@@ -54,7 +54,7 @@ function pad( v ){
 function now(){
   const date = new Date( new Date().getTime() + 9 * 60*60*1000 );
   return {
-    year: date.getUTCDate(),
+    year: date.getUTCFullYear(),
     month: date.getUTCMonth() + 1,
     date: date.getUTCDate(),
   };
