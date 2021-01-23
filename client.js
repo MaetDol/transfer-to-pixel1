@@ -16,18 +16,17 @@ const {
 } = props = readProps( propPath );
 
 Promise.all( getNewFiles( targets ).map( d =>
-    send(d).catch( e => {
-      log.err(`Failed send file: ${d}, because ${e}`);
-      return null;
-    })
+  send(d).catch( e => {
+    log.err(`Failed send file: ${d}, because ${e}`);
+    return null;
+  })
 ))
 .then( results => {
   const faileds = results.filter( v => v === null );
   log.info(`Tried ${results.length} files, failed ${faileds.length} files.`)
-})
+});
 
-//setProps({...props, LAST_UPDATE: new Date()}, propPath );
-return 0;
+setProps({...props, LAST_UPDATE: new Date()}, propPath );
 
 function getNewFiles( dirs ){
   return dirs.map( d => {
@@ -75,10 +74,12 @@ async function send( filePath ){
     'Content-Disposition': `attachment; filename=\"${encodeURI(filename)}\"`,
   };
 
-  const file = fs.readFileSync( filePath );
   const size = fs.statSync( filePath ).size;
   return promisePool
-    .push( _=> asyncRequest(headers, file), size )
+    .push( _=> {
+      const file = fs.readFileSync( filePath );
+      return asyncRequest(headers, file);
+    }, size)
     .then( _=> true )
     .catch( code => {
       log.err(`Upload "${filename}", ${readableSize( size )}, but got an : ${code}`) 
