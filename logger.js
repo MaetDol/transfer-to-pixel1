@@ -9,7 +9,7 @@ const {
   path.resolve( __dirname, './properties.json' ),
   'UTF-8',
 ));
-const BASE = path.resolve( ROOT, LOG_DIR );
+const BASE = path.join( ROOT, LOG_DIR );
 
 module.exports = {
   info: (obj, isDisplayOnly) => {

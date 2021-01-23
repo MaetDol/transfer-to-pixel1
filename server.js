@@ -7,7 +7,7 @@ const {ROOT, PORT, UPLOAD_DIR} = JSON.parse(fs.readFileSync(
   path.resolve( __dirname, './properties.json' ),
   'UTF-8',
 ));
-const UPLOAD = path.resolve( ROOT, UPLOAD_DIR );
+const UPLOAD = path.join( ROOT, UPLOAD_DIR );
 if( !fs.existsSync(UPLOAD) ) {
   log.info(`Directory ${UPLOAD} is not exists. creating..`);
   fs.mkdirSync( UPLOAD, {recursive: true}); 
