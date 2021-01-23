@@ -39,15 +39,15 @@ http.createServer( (req, res) => {
     req.on('data', d => data.push(d) );
     req.on('end', _=> {
       try {
-        const file = Buffer.concat( data );
+        const buffer = Buffer.concat( data );
         const [, encodedName] = req.headers['content-disposition'].match(/filename="(.+)"/);
         if( !encodedName ){
           log.err('filename not provided');
           res.writeHead( 415 ).end();
           return;
         }
-        const filename = decodeURI( encodedName );
-        save( filename, file );
+        const name = decodeURI( encodedName );
+        save( name, buffer );
       } catch(e) {
         log.err('Failed while save file ' + e);
         res.writeHead( 500 ).end();
