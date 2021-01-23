@@ -66,13 +66,9 @@ log.info( 'Server is Running' );
 log.info( new Date() );
 
 function save( filename, file ){
-  log.info( filename )
   const name = path.basename( filename );
   const dir = path.resolve( ROOT, path.dirname(filename) );
-  log.info( dir );
-  if( !fs.existsSync(dir) ){
-    fs.mkdirSync( dir );  
-  }
+  if( !fs.existsSync(dir) ) fs.mkdirSync( dir ); 
   fs.appendFileSync( 
     path.resolve(dir, name), 
     file, 
