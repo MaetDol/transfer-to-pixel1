@@ -10,12 +10,8 @@ const {
   path.resolve( __dirname, './properties.json' ),
   'UTF-8',
 ));
-
 const BASE = path.resolve( ROOT, LOG_DIR );
-const INFO = 'INFO';
-const ERROR = 'ERROR';
 
-// TODO: write like 16.log file by each date
 module.exports = {
   info: (obj, isDisplayOnly) => {
     write( `[INFO] ${stringify( obj )}`, isDisplayOnly );
