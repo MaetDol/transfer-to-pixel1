@@ -4,7 +4,6 @@ const path = require('path');
 const {
   LOG_DIR,
   LOGGING,
-  LOG_DISPLAY_ONLY,
   ROOT,
 } = JSON.parse( fs.readFileSync(
   path.resolve( __dirname, './properties.json' ),
