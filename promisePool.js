@@ -26,17 +26,17 @@ module.exports = class PromisePool {
   consume([ producer, size ]){
     this.onBoardSize += size;
 
-    producer().then( d => {
-      this.onBoardSize -= size;
-      if( !this.pool.length && !this.onBoardSize ){
-        this.clearHandler.forEach( fnc => fnc() );
-      } else {
-        this.next();
-      }
-      return d;
-    })
-    .then( producer.resolve )
-    .catch( producer.reject );
+    producer()
+      .then( producer.resolve )
+      .catch( producer.reject )
+      .finally( _=> {
+        this.onBoardSize -= size;
+        if( !this.pool.length && !this.onBoardSize ){
+          this.clearHandler.forEach( fnc => fnc() );
+        } else {
+          this.next();
+        }
+      });
   }
 
   next(){
