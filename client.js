@@ -7,15 +7,16 @@ const PromisePool = require('./promisePool.js');
 log.info( new Date() );
 const promisePool = new PromisePool( 300 * 1024 * 1024 );
 const propPath = path.resolve( __dirname, './properties.json' );
+const props = readProps( propPath );
 const { 
   LAST_UPDATE,
-  BASE_URL,
+  ROOT,
   SERVER,
   PORT,
   targets
-} = props = readProps( propPath );
+} = props;
 
-Promise.all( getNewFiles( targets ).map( d =>
+Promise.all( getNewFiles(targets).map( d =>
   send(d).catch( e => {
     log.err(`Failed send file: ${d}, because ${e}`);
     return null;
@@ -24,15 +25,16 @@ Promise.all( getNewFiles( targets ).map( d =>
 .then( results => {
   const faileds = results.filter( v => v === null );
   log.info(`Tried ${results.length} files, failed ${faileds.length} files.`)
+  setProps({...props, LAST_UPDATE: new Date()}, propPath );
 });
 
-setProps({...props, LAST_UPDATE: new Date()}, propPath );
+
 
 function getNewFiles( dirs ){
   return dirs.map( d => {
     let newFiles = [];
     try {
-      newFiles = lookupNewFile(path.join( BASE_URL, d ));
+      newFiles = lookupNewFile(path.join( ROOT, d ));
     } catch(e){
       log.err('Failed while lookup new file ' + e);
     }

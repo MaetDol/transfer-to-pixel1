@@ -1,13 +1,16 @@
 {
     "SERVER": "localhost",
     "PORT": "9000",
-    "LAST_UPDATE": "2020-01-17T14:54:10.156Z",
-    "BASE_URL": "/home/github/transfer-to-pixel1/dir",
+    "LAST_UPDATE": "2011-01-21T17:07:53.653Z",
     "targets": [
-        "/movies",
+        "/Movies/",
         "dir"
     ],
-    "SERVER_ROOT": "/home/github/transfer-to-pixel1/dir",
-    "LOG_DIR": "/home/github/transfer-to-pixel1/",
-    "LOGGING": true
+
+    "ROOT": "/storage/emulated/0/",
+    "UPLOAD_DIR": "/DCIM/transfered/",
+
+    "LOGGING": true,
+    "LOG_DISPLAY_ONLY": "INFO",
+    "LOG_DIR": "/Download/logs"
 }

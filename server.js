@@ -3,10 +3,15 @@ const fs = require('fs');
 const path = require('path');
 const log = require('./logger.js');
 
-const {SERVER_ROOT: ROOT, PORT} = JSON.parse(fs.readFileSync(
+const {ROOT, PORT} = JSON.parse(fs.readFileSync(
   path.resolve( __dirname, './properties.json' ),
   'UTF-8',
 ));
+const UPLOAD = path.resolve( ROOT, UPLOAD_DIR );
+if( !fs.existsSync(UPLOAD) ) {
+  log.info(`Directory ${UPLOAD} is not exists. creating..`);
+  fs.mkdirSync( UPLOAD, {recursive: true}); 
+}
 
 http.createServer( (req, res) => {
   try {
@@ -65,12 +70,9 @@ http.createServer( (req, res) => {
 log.info( 'Server is Running' );
 log.info( new Date() );
 
-function save( filename, file ){
-  const name = path.basename( filename );
-  const dir = path.resolve( ROOT, path.dirname(filename) );
-  if( !fs.existsSync(dir) ) fs.mkdirSync( dir ); 
+function save( name, file ){
   fs.appendFileSync( 
-    path.resolve(dir, name), 
+    path.resolve(UPLOAD, name), 
     file, 
     {flag: 'w'}
   );
