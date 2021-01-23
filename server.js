@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const log = require('./logger.js');
 
-const {ROOT, PORT} = JSON.parse(fs.readFileSync(
+const {ROOT, PORT, UPLOAD_DIR} = JSON.parse(fs.readFileSync(
   path.resolve( __dirname, './properties.json' ),
   'UTF-8',
 ));
