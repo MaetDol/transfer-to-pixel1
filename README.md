@@ -5,3 +5,4 @@ git pull, 또는 소스 다운받고 해야할 것
 - base_url 수정
 - server_root 수정
 - log_dir 
+- 구글 포토, termux 배터리 최적화 끄기
