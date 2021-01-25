@@ -2,12 +2,12 @@
 
 REPO_NAME="transfer-to-pixel1"
 WORK_DIR="./transfer-to-pixel1"
-if [ -d "$WORK_DIR" ]; then
+if [ ! -d "$WORK_DIR" ]; then
   echo "Start initial setup..."
-  pkg update && 
-    pkg install git nodejs termux-api && 
+  echo n > pkg update && 
+    pkg install git nodejs termux-api -y && 
     git clone https://github.com/MaetDol/$REPO_NAME.git &&
-    echo "Setup is done. You can achive your subject" && 
+    echo -e "\n\nSetup is done. You can achive your subject" && 
     echo "type cd $REPO_NAME then" && 
     echo "\"node server.js\" or \"node client.js\""
 else
