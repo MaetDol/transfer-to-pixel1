@@ -13,6 +13,7 @@ const {
   ROOT,
   SERVER,
   PORT,
+  DELETE_AFTER_UPLOAD,
   targets
 } = props;
 
@@ -82,10 +83,12 @@ async function send( filePath ){
   const size = fs.statSync( filePath ).size;
   return promisePool
     .push( _=> {
-      const file = fs.readFileSync( filePath );
-      return asyncRequest(headers, file);
+      return asyncRequest(headers, fs.readFileSync(filePath));
     }, size)
-    .then( _=> true )
+    .then( _=> {
+      if( DELETE_AFTER_UPLOAD ) fs.unlinkSync( filePath );
+      return true;
+    })
     .catch( code => {
       log.err(`Upload "${filename}", ${readableSize( size )}, but got an : ${code}`) 
       return null;
