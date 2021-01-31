@@ -17,6 +17,8 @@ const {
   targets
 } = props;
 
+setProps({...props, LAST_UPDATE: new Date()}, propPath );
+
 Promise.all( getNewFiles(targets).map( d => {
   log.info(`Sending file "${d}"..`, true);
   return send(d)
@@ -29,7 +31,10 @@ Promise.all( getNewFiles(targets).map( d => {
 .then( results => {
   const faileds = results.filter( v => v !== null );
   log.info(`Tried ${results.length} files, failed ${faileds.length} files.`)
-  setProps({...props, LAST_UPDATE: new Date()}, propPath );
+
+  faileds.map(({ filePath, mode })=> {
+    fs.chmodSync( filePath, mode );
+  });
 });
 
 
@@ -80,7 +85,8 @@ async function send( filePath ){
     'Content-Disposition': `attachment; filename=\"${encodeURI(filename)}\"`,
   };
 
-  const size = fs.statSync( filePath ).size;
+  const stat = fs.statSync( filePath );
+  const size = stat.size;
   return promisePool
     .push( _=> {
       return asyncRequest(headers, fs.readFileSync(filePath));
@@ -91,7 +97,7 @@ async function send( filePath ){
     })
     .catch( code => {
       log.err(`Upload "${filename}", ${readableSize( size )}, but got an : ${code}`) 
-      return filePath;
+      return {filePath, mode: stat.mode};
     });
 }
 
