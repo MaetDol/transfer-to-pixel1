@@ -35,6 +35,12 @@ Promise.all( getNewFiles(targets).map( d => {
   faileds.map(({ filePath, mode })=> {
     fs.chmodSync( filePath, mode );
   });
+
+  if( faileds.length ){
+    process.exit(1);
+  } else {
+    process.exit(0);
+  }
 });
 
 
