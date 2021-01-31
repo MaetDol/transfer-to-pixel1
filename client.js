@@ -23,11 +23,11 @@ Promise.all( getNewFiles(targets).map( d => {
     .finally(_=> log.info(`Upload is done "${d}"`, true))
     .catch( e => {
       log.err(`Failed send file: ${d}, because ${e}`);
-      return null;
+      return d;
     });
 }))
 .then( results => {
-  const faileds = results.filter( v => v === null );
+  const faileds = results.filter( v => v !== null );
   log.info(`Tried ${results.length} files, failed ${faileds.length} files.`)
   setProps({...props, LAST_UPDATE: new Date()}, propPath );
 });
@@ -87,11 +87,11 @@ async function send( filePath ){
     }, size)
     .then( _=> {
       if( DELETE_AFTER_UPLOAD ) fs.unlinkSync( filePath );
-      return true;
+      return null;
     })
     .catch( code => {
       log.err(`Upload "${filename}", ${readableSize( size )}, but got an : ${code}`) 
-      return null;
+      return filePath;
     });
 }
 
