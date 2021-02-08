@@ -1,10 +1,10 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const log = require('./logger.js');
+const log = require('./utils/logger.js');
 
 const {ROOT, PORT, UPLOAD_DIR} = JSON.parse(fs.readFileSync(
-  path.resolve( __dirname, './properties.json' ),
+  path.resolve( __dirname, '../properties.json' ),
   'UTF-8',
 ));
 const UPLOAD = path.join( ROOT, UPLOAD_DIR );

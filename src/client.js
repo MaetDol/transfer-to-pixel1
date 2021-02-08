@@ -1,12 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
-const log = require('./logger.js');
-const PromisePool = require('./promisePool.js');
+const log = require('./utils/logger.js');
+const PromisePool = require('./utils/PromisePool.js');
 
 log.info( new Date() );
 const promisePool = new PromisePool( 300 * 1024 * 1024 );
-const propPath = path.resolve( __dirname, './properties.json' );
+const propPath = path.resolve( __dirname, '../properties.json' );
 const props = readProps( propPath );
 const { 
   LAST_UPDATE,

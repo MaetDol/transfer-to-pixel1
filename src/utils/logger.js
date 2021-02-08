@@ -6,7 +6,7 @@ const {
   LOGGING,
   ROOT,
 } = JSON.parse( fs.readFileSync(
-  path.resolve( __dirname, './properties.json' ),
+  path.resolve( __dirname, '../../properties.json' ),
   'UTF-8',
 ));
 const BASE = path.join( ROOT, LOG_DIR );
