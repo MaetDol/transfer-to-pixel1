@@ -3,6 +3,7 @@ const path = require('path');
 const http = require('http');
 const log = require('./utils/logger.js');
 const PromisePool = require('./utils/PromisePool.js');
+const File = require('./utils/File.js');
 
 log.info( new Date() );
 const promisePool = new PromisePool( 300 * 1024 * 1024 );
@@ -19,21 +20,29 @@ const {
 
 setProps({...props, LAST_UPDATE: new Date()}, propPath );
 
-Promise.all( getNewFiles(targets).map( d => {
+Promise.all( getNewFiles(targets).map( async d => {
+  await 0;
   log.info(`Sending file "${d}"..`, true);
-  return send(d)
+
+  const file = new File(d);
+  if( !file.mediaType ) {
+    log.err(`Not supported file type of ${d}`);
+    return null;
+  }
+
+  return send( file )
     .finally(_=> log.info(`Upload is done "${d}"`, true))
     .catch( e => {
       log.err(`Failed send file: ${d}, because ${e}`);
-      return d;
+      return file;
     });
 }))
 .then( results => {
-  const faileds = results.filter( v => v !== null );
+  const faileds = results.filter( v => v !== 200 );
   log.info(`Tried ${results.length} files, failed ${faileds.length} files.`)
 
-  faileds.map(({ filePath, mode })=> {
-    fs.chmodSync( filePath, mode );
+  faileds.filter(v => v !== null).map(({ path, mode })=> {
+    fs.chmodSync( path, mode );
   });
 
   if( faileds.length ){
@@ -80,30 +89,23 @@ function contentTypeOf( ext ){
     return 'video';
   }
 
-  throw 'Not supported file type';
 }
 
-async function send( filePath ){
-  const filename = filePath.split( path.sep ).pop();
-  const ext = path.extname( filename ).slice(1);
+async function send( file ){
   const headers = {
-    'Content-Type': `${contentTypeOf( ext )}/${ext}`,
-    'Content-Disposition': `attachment; filename=\"${encodeURI(filename)}\"`,
+    'Content-Type': `${file.mediaType}/${file.ext}`,
+    'Content-Disposition': `attachment; filename=\"${encodeURI(file.name)}\"`,
   };
 
-  const stat = fs.statSync( filePath );
-  const size = stat.size;
   return promisePool
-    .push( _=> {
-      return asyncRequest(headers, fs.readFileSync(filePath));
-    }, size)
-    .then( _=> {
-      if( DELETE_AFTER_UPLOAD ) fs.unlinkSync( filePath );
-      return null;
+    .push( _=> asyncRequest(headers, file.read()), file.size)
+    .then( code => {
+      if( DELETE_AFTER_UPLOAD ) file.delete();
+      return code;
     })
     .catch( code => {
-      log.err(`Upload "${filename}", ${readableSize( size )}, but got an : ${code}`) 
-      return {filePath, mode: stat.mode};
+      log.err(`Upload "${file.name}", ${readableSize( file.size )}, but got an : ${code}`) 
+      return {path: file.path, mode: file.mode};
     });
 }
 
