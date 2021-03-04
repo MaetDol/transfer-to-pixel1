@@ -4,6 +4,7 @@ const http = require('http');
 const log = require('./utils/logger.js');
 const PromisePool = require('./utils/PromisePool.js');
 const File = require('./utils/File.js');
+const { readableSize, getNewFiles } = require('./utils/FileUtils.js');
 
 log.info( new Date() );
 const promisePool = new PromisePool( 300 * 1024 * 1024 );
