@@ -3,13 +3,14 @@ const path = require('path');
 const http = require('http');
 const log = require('./utils/logger.js');
 const PromisePool = require('./utils/PromisePool.js');
+const Properties = require('./utils/Properties.js');
 const File = require('./utils/File.js');
 const { readableSize, getNewFiles } = require('./utils/FileUtils.js');
 
 log.info( new Date() );
-const promisePool = new PromisePool( 300 * 1024 * 1024 );
-const propPath = path.resolve( __dirname, '../properties.json' );
-const props = readProps( propPath );
+const prop = new Properties(
+  path.resolve( __dirname, '../properties.json' ),
+);
 const { 
   LAST_UPDATE,
   ROOT,
@@ -17,10 +18,14 @@ const {
   PORT,
   DELETE_AFTER_UPLOAD,
   targets
-} = props;
+} = prop.value;
 
-setProps({...props, LAST_UPDATE: new Date()}, propPath );
+prop.write({
+  ...prop.value,
+  LAST_UPDATE: new Date(),
+});
 
+const promisePool = new PromisePool( 300 * 1024 * 1024 );
 Promise.all( getNewFiles(targets).map( async d => {
   await 0;
   log.info(`Sending file "${d}"..`, true);

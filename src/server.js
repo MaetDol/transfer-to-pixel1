@@ -2,11 +2,13 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const log = require('./utils/logger.js');
+const Properties = require('./utils/Properties.js');
 
-const {ROOT, PORT, UPLOAD_DIR} = JSON.parse(fs.readFileSync(
+const prop = new Properties(
   path.resolve( __dirname, '../properties.json' ),
-  'UTF-8',
-));
+);
+const { ROOT, PORT, UPLOAD_DIR } = prop.value;
+
 const UPLOAD = path.join( ROOT, UPLOAD_DIR );
 if( !fs.existsSync(UPLOAD) ) {
   log.info(`Directory ${UPLOAD} is not exists. creating..`);
