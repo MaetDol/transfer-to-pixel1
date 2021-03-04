@@ -1,22 +1,32 @@
 const fs = require('fs');
 
-function readProps( path ){
-  const propFile = fs.readFileSync( path, 'UTF-8' );
-  if( !propFile ) throw 'properties.json is empty!';
+class Properties {
+  constructor( path ) {
+    this.path = path;
+    this.read();
+  }
 
-  const props = JSON.parse( propFile );
-  if( !props.targets.length ) throw 'There is no target directories for watching';
+  get value() {
+    return this._prop;
+  }
 
-  props.LAST_UPDATE = new Date( props.LAST_UPDATE );
-  return props;
+  read() {
+    const propFile = fs.readFileSync( this.path, 'UTF-8' );
+    if( !propFile ) throw 'properties.json is empty!';
+
+    const prop = JSON.parse( propFile );
+    if( !prop.targets.length ) throw 'There is no target directories for watching';
+
+    prop.LAST_UPDATE = new Date( prop.LAST_UPDATE );
+    this._prop = prop;
+  }
+
+  write( prop ) {
+    fs.writeFileSync( 
+      this.path, 
+      JSON.stringify( prop, null, 4 ),
+    );
+  }
 }
 
-function setProps( prop, path ){
-  fs.writeFileSync( path, JSON.stringify(prop, null, 4) );
-}
-
-
-module.exports = {
-  readProps,
-  setProps,
-};
+module.exports = Properties;
