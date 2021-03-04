@@ -1,3 +1,5 @@
+const fs = require('fs');
+const log = require('./logger.js');
 
 function readableSize( size ){
   const SUFFIX_SET = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -10,7 +12,6 @@ function readableSize( size ){
 }
 
 function lookupNewFile( dir, result=[] ){
-
   fs.readdirSync( dir )
     .forEach( fp => {
       const fullPath = path.join( dir, fp );
