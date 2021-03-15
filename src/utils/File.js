@@ -27,6 +27,17 @@ class File {
     return fs.readFileSync( this.path );
   }
 
+  readableSize() {
+    const SUFFIX_SET = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let suffix = 0;
+    let size = this.size;
+    while( size >= 1024 ){
+      size /= 1024;
+      suffix++;
+    }
+    return `${size.toFixed(2)} ${SUFFIX_SET[suffix]}`;
+  }
+
   delete(){
     fs.unlinkSync( this.path );
   }

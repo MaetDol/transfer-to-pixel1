@@ -5,7 +5,7 @@ const log = require('./utils/logger.js');
 const PromisePool = require('./utils/PromisePool.js');
 const Properties = require('./utils/Properties.js');
 const File = require('./utils/File.js');
-const { readableSize, getNewFiles } = require('./utils/FileUtils.js');
+const { getNewFiles } = require('./utils/FileUtils.js');
 
 log.info( new Date() );
 const prop = new Properties(
@@ -72,7 +72,7 @@ async function send( file ){
       return code;
     })
     .catch( code => {
-      log.err(`Upload "${file.name}", ${readableSize( file.size )}, but got an : ${code}`) 
+      log.err(`Upload "${file.name}", ${file.readableSize()}, but got an : ${code}`) 
       return {path: file.path, mode: file.mode};
     });
 }

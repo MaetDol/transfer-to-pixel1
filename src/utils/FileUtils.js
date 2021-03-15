@@ -1,16 +1,6 @@
 const fs = require('fs');
 const log = require('./logger.js');
 
-function readableSize( size ){
-  const SUFFIX_SET = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let suffix = 0;
-  while( size >= 1024 ){
-    size /= 1024;
-    suffix++;
-  }
-  return `${size.toFixed(2)} ${SUFFIX_SET[suffix]}`;
-}
-
 function lookupNewFile( dir, result=[] ){
   fs.readdirSync( dir )
     .forEach( fp => {
@@ -50,7 +40,6 @@ function getNewFiles( dirs ){
 }
 
 module.exports = {
-  readableSize,
   lookupNewFile,
   contentTypeOf,
   getNewFiles,
