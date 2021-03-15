@@ -1,19 +1,31 @@
 const fs = require('fs');
+const path = require('path');
 const log = require('./logger.js');
 
-function lookupNewFile( dir, result=[] ){
-  fs.readdirSync( dir )
-    .forEach( fp => {
-      const fullPath = path.join( dir, fp );
-      const stat = fs.statSync( fullPath );
-      if( LAST_UPDATE > stat.ctime ) return;
+function lookupNewFile({ dir, ignore, LAST_UPDATE }){
+  const result = [];
+  const dirs = [dir];
+  while( dirs.length ) {
+    const currentDir = dirs.pop();
+    if( ignore.includes(currentDir) ) continue;
 
-      if( stat.isDirectory() ){
-        return lookupNewFile(fullPath, result);
-      }
+    fs
+      .readdirSync( currentDir )
+      .forEach( name => {
+        const fullPath = path.join( currentDir, name );
+        if( ignore.includes(fullPath) ) return;
 
-      result.push( fullPath );
-    });
+        const stat = fs.statSync( fullPath );
+        if( LAST_UPDATE > stat.ctime ) return;
+
+        if( stat.isDirectory() ) {
+          dirs.push( currentPath );
+          return;
+        }
+
+        result.push( fullPath );
+      });
+  }
 
   return result;
 }
