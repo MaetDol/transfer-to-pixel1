@@ -39,11 +39,11 @@ function contentTypeOf( ext ){
   }
 }
 
-function getNewFiles( dirs ){
+function getNewFiles( dirs, ignores ){
   return dirs.map( d => {
     let newFiles = [];
     try {
-      newFiles = lookupNewFile(path.join( ROOT, d ));
+      newFiles = lookupNewFile( path.join(ROOT, d), ignores );
     } catch(e){
       log.err('Failed while lookup new file ' + e);
     }

@@ -4,7 +4,7 @@ const http = require('http');
 const log = require('./utils/logger.js');
 const PromisePool = require('./utils/PromisePool.js');
 const Properties = require('./utils/Properties.js');
-const { File, getNewFiles } = require('./utils/File');
+const { File, Ignores, getNewFiles } = require('./utils/File');
 
 log.info( new Date() );
 const prop = new Properties(
@@ -16,7 +16,8 @@ const {
   SERVER,
   PORT,
   DELETE_AFTER_UPLOAD,
-  targets
+  targets,
+  ignores: ignorePaths
 } = prop.value;
 
 prop.write({
@@ -24,8 +25,10 @@ prop.write({
   LAST_UPDATE: new Date(),
 });
 
+const ignores = new Ignores( ignorePaths );
 const promisePool = new PromisePool( 300 * 1024 * 1024 );
-Promise.all( getNewFiles(targets).map( async d => {
+
+Promise.all( getNewFiles(targets, ignores).map( async d => {
   await 0;
   log.info(`Sending file "${d}"..`, true);
 
