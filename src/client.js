@@ -4,8 +4,7 @@ const http = require('http');
 const log = require('./utils/logger.js');
 const PromisePool = require('./utils/PromisePool.js');
 const Properties = require('./utils/Properties.js');
-const File = require('./utils/File.js');
-const { getNewFiles } = require('./utils/FileUtils.js');
+const { File, getNewFiles } = require('./utils/File');
 
 log.info( new Date() );
 const prop = new Properties(
