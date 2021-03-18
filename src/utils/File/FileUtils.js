@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const log = require('./logger.js');
+const log = require('../logger.js');
 
-function lookupNewFile({ dir, ignore, LAST_UPDATE }){
+function lookupNewFile( dir, ignore, LAST_UPDATE ){
   const result = [];
   const dirs = [dir];
   while( dirs.length ) {
@@ -39,7 +39,7 @@ function contentTypeOf( ext ){
   }
 }
 
-function getNewFiles( dirs, ignores ){
+function getNewFiles( ROOT, dirs, ignores, LAST_UPDATE){
   return dirs.map( d => {
     let newFiles = [];
     try {

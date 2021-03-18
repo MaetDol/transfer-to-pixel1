@@ -28,7 +28,7 @@ prop.write({
 const ignores = new Ignores( ignorePaths );
 const promisePool = new PromisePool( 300 * 1024 * 1024 );
 
-Promise.all( getNewFiles(targets, ignores).map( async d => {
+Promise.all( getNewFiles(ROOT, targets, ignores, LAST_UPDATE).map( async d => {
   await 0;
   log.info(`Sending file "${d}"..`, true);
 

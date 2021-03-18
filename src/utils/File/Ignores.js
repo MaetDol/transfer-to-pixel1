@@ -24,3 +24,5 @@ class Ignores {
     return new Pattern( str );
   }
 }
+
+module.exports = Ignores;
