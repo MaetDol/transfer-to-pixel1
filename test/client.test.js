@@ -2,6 +2,15 @@ const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
 
+const {
+  files1,
+  files2,
+  ignores,
+  isIgnoredFile,
+  createFile,
+} = require('./files');
+const { create } = require('domain');
+
 const Properties = require(
   path.resolve( __dirname, '../src/utils/Properties')
 );
@@ -10,30 +19,32 @@ const prop = new Properties(
   path.resolve( __dirname, '../properties.json' )
 );
 
+function rootPath( p ) {
+  return path.join( __dirname, p );
+}
+
+function relativePath( p ) {
+  return path.resolve( __dirname, p );
+}
+
 function delay( time ) {
   return new Promise( resolve => setTimeout(resolve, time) );
 }
 
 const env = { name:[] };
-function createFile( dir, name ) {
-  env.files.push( name );
-  fs.writeFileSync( path.resolve(dir, name), '');
-}
-
 beforeEach( async () => {
   jest.resetModules();
 
   env.srcName = '__origin';
-  env.src = path.join( __dirname, env.srcName );
+  env.src = rootPath( env.srcName );
 
   env.desName = '__received';
-  env.des = path.join( __dirname, env.desName );
+  env.des = rootPath( env.desName );
 
-  if( !fs.existsSync(env.src) ) fs.mkdirSync( env.src );
-  if( !fs.existsSync(env.des) ) fs.mkdirSync( env.des );
+  fs.mkdirSync( env.src, {recursive: true} );
+  fs.mkdirSync( env.des, {recursive: true} );
 
-  createFile( env.src, 'oldFile.jpg' );
-  createFile( env.src, 'oldFile2.png' );
+  files1.forEach( f => createFile(env.src, f) );
 
   await delay( 10 );
   prop.write({
@@ -47,15 +58,14 @@ beforeEach( async () => {
     DELETE_AFTER_UPLOAD: false,
 
     ROOT: __dirname,
-    UPLOAD_DIR: env.desName,
+    UPLOAD_DIR: '/test_logs',
     LOGGING: true,
   });
   
   await delay( 10 );
-  createFile( env.src, 'newFile.jpeg' );
-  createFile( env.src, 'newFile2.mp4' );
+  files2.forEach( f => createFile(env.src, f) );
 
-  env.server = spawn( 'node', [path.resolve(__dirname, '../src/server.js')] );
+  env.server = spawn( 'node', [relativePath('../src/server.js')] );
   await delay( 1000 );
 });
 
@@ -67,13 +77,13 @@ afterAll(() => {
 test('Test without delete', done => {
   const client = spawn(
     'node', 
-    [path.resolve(__dirname, '../src/client.js')],
+    [relativePath( '../src/client.js' )],
     {stdio: ['pipe', 'pipe', 'pipe', 'pipe', 'pipe']},
   );
-  client.stdout.on( 'data', d => console.log(`ERROR ${d}`) );
-  client.on('close', code => {
-    const list = fs.readdirSync(env.des, {withFileTypes: true});
-    list.forEach( l => console.log(l) );
+  client.stdout.on( 'data', d => console.log(`${d}`) );
+  client.on('close', () => {
+    const uploadedFiles = fs.readdirSync( env.des, {withFileTypes: true} );
+    console.log( uploadedFiles );
     done();
   });
 });
