@@ -10,7 +10,7 @@ const prop = new Properties(
 const { ROOT, PORT, UPLOAD_DIR } = prop.value;
 
 const UPLOAD = path.join( ROOT, UPLOAD_DIR );
-if( !fs.existsSync(UPLOAD) ) {
+if( !fs.statSync(UPLOAD) ) {
   log.info(`Directory ${UPLOAD} is not exists. creating..`);
   fs.mkdirSync( UPLOAD, {recursive: true}); 
 }
@@ -67,10 +67,11 @@ http.createServer( (req, res) => {
     log.err('Internal server error ' + e);
     res.writeHead( 500 ).end();
   }
-}).listen( PORT );
-
-log.info( 'Server is Running' );
-log.info( new Date() );
+  
+}).listen( PORT, () => {
+  log.info( 'Server is Running' );
+  log.info( new Date() );
+});
 
 function save( name, file ){
   fs.appendFileSync( 
