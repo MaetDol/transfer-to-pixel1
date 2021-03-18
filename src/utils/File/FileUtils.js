@@ -16,12 +16,11 @@ function lookupNewFile( dir, ignore, LAST_UPDATE ){
         if( ignore.includes(fullPath) ) return;
 
         const stat = fs.statSync( fullPath );
-        if( LAST_UPDATE > stat.ctime ) return;
-
         if( stat.isDirectory() ) {
           dirs.push( fullPath );
           return;
         }
+        if( LAST_UPDATE > stat.ctime ) return;
 
         result.push( fullPath );
       });
@@ -43,7 +42,7 @@ function getNewFiles( ROOT, dirs, ignores, LAST_UPDATE){
   return dirs.map( d => {
     let newFiles = [];
     try {
-      newFiles = lookupNewFile( path.join(ROOT, d), ignores );
+      newFiles = lookupNewFile( path.join(ROOT, d), ignores, LAST_UPDATE );
     } catch(e){
       log.err('Failed while lookup new file ' + e);
     }
