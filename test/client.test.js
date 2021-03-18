@@ -58,7 +58,8 @@ beforeEach( async () => {
     DELETE_AFTER_UPLOAD: false,
 
     ROOT: __dirname,
-    UPLOAD_DIR: '/test_logs',
+    UPLOAD_DIR: env.desName,
+    LOG_DIR: 'test_logs',
     LOGGING: true,
   });
   
@@ -72,13 +73,13 @@ beforeEach( async () => {
 afterAll(() => {
   fs.rmdirSync( env.src, {recursive: true} );
   fs.rmdirSync( env.des, {recursive: true} );
+  env.server.kill( 'SIGINT' );
 });
 
 test('Test without delete', done => {
   const client = spawn(
     'node', 
     [relativePath( '../src/client.js' )],
-    {stdio: ['pipe', 'pipe', 'pipe', 'pipe', 'pipe']},
   );
   client.stdout.on( 'data', d => console.log(`${d}`) );
   client.on('close', () => {
