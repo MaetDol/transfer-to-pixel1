@@ -6,10 +6,12 @@ const {
   files1,
   files2,
   ignores,
+  invalid,
+  isValid,
   isIgnoredFile,
   createFile,
+  wholeFiles,
 } = require('./files');
-const { create } = require('domain');
 
 const Properties = require(
   path.resolve( __dirname, '../src/utils/Properties')
@@ -46,7 +48,7 @@ beforeEach( async () => {
 
   files1.forEach( f => createFile(env.src, f) );
 
-  await delay( 10 );
+  await delay( 100 );
   prop.write({
     ...prop.value,
     SERVER: 'localhost',
@@ -65,10 +67,11 @@ beforeEach( async () => {
   
   await delay( 10 );
   files2.forEach( f => createFile(env.src, f) );
+  invalid.forEach( f => createFile(env.src, f) );
 
   env.server = spawn( 'node', [relativePath('../src/server.js')] );
-  await delay( 1000 );
-});
+  await delay( 2000 );
+}, 20 * 1000 );
 
 afterAll(() => {
   fs.rmdirSync( env.src, {recursive: true} );
@@ -76,15 +79,30 @@ afterAll(() => {
   env.server.kill( 'SIGINT' );
 });
 
-test('Test without delete', done => {
+test('Test upload only valid', done => {
   const client = spawn(
     'node', 
     [relativePath( '../src/client.js' )],
   );
   client.stdout.on( 'data', d => console.log(`${d}`) );
+
   client.on('close', () => {
-    const uploadedFiles = fs.readdirSync( env.des, {withFileTypes: true} );
+    const uploadedFiles = fs
+        .readdirSync( env.des, {withFileTypes: true} )
+        .map( f => f.name );
     console.log( uploadedFiles );
+
+    const uploaded = uploadedFiles.length === files2.length;
+    const valid = uploadedFiles.every( isValid );
+
+    console.log(
+`
+Expected upload count is ${files2.length}
+Upload files are valid? ${valid}
+Uploaded all valid files? ${uploaded}
+`
+    );
+    expect( valid && uploaded ).toBeTruthy();
     done();
   });
 });
