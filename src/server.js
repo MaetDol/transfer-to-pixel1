@@ -10,7 +10,7 @@ const prop = new Properties(
 const { ROOT, PORT, UPLOAD_DIR } = prop.value;
 
 const UPLOAD = path.join( ROOT, UPLOAD_DIR );
-if( !fs.statSync(UPLOAD) ) {
+if( !fs.existsSync(UPLOAD) ) {
   log.info(`Directory ${UPLOAD} is not exists. creating..`);
   fs.mkdirSync( UPLOAD, {recursive: true}); 
 }
