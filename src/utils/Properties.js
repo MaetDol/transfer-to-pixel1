@@ -22,6 +22,7 @@ class Properties {
   }
 
   write( prop ) {
+    this._prop = prop;
     fs.writeFileSync( 
       this.path, 
       JSON.stringify( prop, null, 4 ),
