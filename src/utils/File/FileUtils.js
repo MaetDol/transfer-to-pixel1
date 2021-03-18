@@ -19,7 +19,7 @@ function lookupNewFile( dir, ignore, LAST_UPDATE ){
         if( LAST_UPDATE > stat.ctime ) return;
 
         if( stat.isDirectory() ) {
-          dirs.push( currentPath );
+          dirs.push( fullPath );
           return;
         }
 
