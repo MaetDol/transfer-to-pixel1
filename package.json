@@ -1,0 +1,25 @@
+{
+  "name": "transfer-to-pixel1",
+  "version": "1.0.0",
+  "description": "Transfer other images to pixel 1",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://maetdol@github.com/maetdol/transfer-to-pixel1.git"
+  },
+  "author": "MaetDol",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maetdol/transfer-to-pixel1/issues"
+  },
+  "homepage": "https://github.com/maetdol/transfer-to-pixel1#readme",
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
