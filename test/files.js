@@ -9,8 +9,11 @@ const ignores = [
 	'/.thumb/thumb1.png',
 	'/.thumb/thumb2.png',
 	'/.thumb/thumb3.png',
-	
+];
+const invalid = [
 	'/img.txt',
+	'/inv/invalid',
+	'/inv/invalidjpg',
 ];
 const files1 = [
 	'/img.png',
@@ -20,7 +23,6 @@ const files1 = [
 
 	'/rec/rec2/rec3/rec4/deepDir/hey.jpeg',
 ];
-
 const files2 = [
 	'/newImage.png',
 	'/newImage.jpg',
@@ -29,6 +31,10 @@ const files2 = [
 
 	'/rec/rec2/rec3/rec4/deepDir/heyItsNew.jpeg',
 ];
+
+function wholeFiles() {
+	return [].concat( ignores, invalid, files1, files2 );
+}
 
 function createFile( root, fullpath ) {
 	const info = path.parse( fullpath );
@@ -39,17 +45,29 @@ function createFile( root, fullpath ) {
 	fs.writeFileSync( path.join(root, fullpath), '' );
 }
 
+function isMatchedFile( name ) {
+	return fullpath => {
+		const idx = fullpath.indexOf( name );
+		const expectIdx = fullpath.length - name.length - 1;
+		return idx === -1 ? false : idx === expectIdx;
+	}
+}
+
+function isValid( filename ) {
+	return !invalid.some( isMatchedFile(filename) );
+}
+
 function isIgnoredFile( filename ) {
-	return ignores.find( f => {
-		const idx = f.indexOf( filename );
-		return idx + filename.length === f.length-1;
-	}) !== undefined;
+	return ignores.find( isMatchedFile(filename) ) !== undefined;
 }
 
 module.exports = {
 	files1,
 	files2,
 	ignores,
+	invalid,
+	isValid,
 	isIgnoredFile,
 	createFile,
+	wholeFiles,
 }
