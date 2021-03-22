@@ -11,7 +11,6 @@ const {
   cleanupEnvironment,
   runClient,
   uploadedFiles,
-  uploadedFiles,
 } = require('./utils');
 
 const {
@@ -23,13 +22,13 @@ const {
   isIgnoredFile,
   createFile,
   wholeFiles,
+  contains,
 } = require('./files');
-
 
 describe('Upload valid files only', () => {
   const env = {
-    newFiles: files1,
-    oldFiles: [].concat( files2, invalid ),
+    oldFiles: files1,
+    newFiles: [].concat( files2, invalid ),
   };
 
   beforeAll( () => initEnvironment(env), 20 * 1000 );
@@ -39,7 +38,7 @@ describe('Upload valid files only', () => {
     runClient( env ).on('close', () => {
       const files = uploadedFiles( env );
       const uploaded = files.length === files2.length;
-      const valid = files.every( isValid );
+      const valid = files.every( f => contains(f, files2) );
 
       expect( valid && uploaded ).toBeTruthy();
       done();
@@ -50,8 +49,8 @@ describe('Upload valid files only', () => {
 describe('Upload without ignore files', () => {
   const env = {
     printLog: false,
-    newFiles: files1,
-    oldFiles: [].concat( files2, invalid, ignores ),
+    oldFiles: files1,
+    newFiles: [].concat( files2, invalid, ignores ),
     ignores: ['ignores/', '.*/'],
   };
 
@@ -62,7 +61,7 @@ describe('Upload without ignore files', () => {
     runClient( env ).on('close', () => {
       const files = uploadedFiles( env );
       const uploaded = files.length === files2.length;
-      const valid = files.every( isValid );
+      const valid = files.every( f => contains(f, files2) );
 
       expect( valid && uploaded ).toBeTruthy();
       done();
