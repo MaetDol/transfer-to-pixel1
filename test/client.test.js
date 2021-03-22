@@ -33,9 +33,9 @@ describe('Upload valid files only', () => {
   };
 
   beforeAll( () => initEnvironment(env), 20 * 1000 );
-  afterAll( cleanupEnvironment );
+  afterAll( () => cleanupEnvironment(env) );
 
-  test('default upload test', done => {
+  test('upload files2..', done => {
     runClient( env ).on('close', () => {
       const files = uploadedFiles( env );
       const uploaded = files.length === files2.length;
@@ -47,5 +47,25 @@ describe('Upload valid files only', () => {
   });
 });
 
+describe('Upload without ignore files', () => {
+  const env = {
+    printLog: false,
+    newFiles: files1,
+    oldFiles: [].concat( files2, invalid, ignores ),
+    ignores: ['ignores/', '.*/'],
+  };
 
+  beforeAll( () => initEnvironment(env), 20 * 1000 );
+  afterAll( () => cleanupEnvironment(env) );
+
+  test('upload files2..', done => {
+    runClient( env ).on('close', () => {
+      const files = uploadedFiles( env );
+      const uploaded = files.length === files2.length;
+      const valid = files.every( isValid );
+
+      expect( valid && uploaded ).toBeTruthy();
+      done();
+    });
+  });
 });
