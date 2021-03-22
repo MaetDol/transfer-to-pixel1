@@ -26,7 +26,7 @@ const {
 } = require('./files');
 
 
-describe('Test upload files that only valid', () => {
+describe('Upload valid files only', () => {
   const env = {
     printLog: false,
     newFiles: files1,
