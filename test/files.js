@@ -48,7 +48,7 @@ function createFile( root, fullpath ) {
 function isMatchedFile( name ) {
 	return fullpath => {
 		const idx = fullpath.indexOf( name );
-		const expectIdx = fullpath.length - name.length - 1;
+		const expectIdx = fullpath.length - name.length;
 		return idx === -1 ? false : idx === expectIdx;
 	}
 }
