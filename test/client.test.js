@@ -7,6 +7,11 @@ const {
 	relativePath,
 	delay,
 	setProp,
+  initEnvironment,
+  cleanupEnvironment,
+  runClient,
+  uploadedFiles,
+  uploadedFiles,
 } = require('./utils');
 
 const {
@@ -22,64 +27,26 @@ const {
 
 
 describe('Test upload files that only valid', () => {
-  const env = { name:[] };
-  beforeAll( async () => {
-    jest.resetModules();
+  const env = {
+    printLog: false,
+    newFiles: files1,
+    oldFiles: [].concat( files2, invalid ),
+  };
 
-    env.srcName = '__origin';
-    env.src = rootPath( env.srcName );
-    env.desName = '__received';
-    env.des = rootPath( env.desName );
-
-    fs.mkdirSync( env.src, {recursive: true} );
-    fs.mkdirSync( env.des, {recursive: true} );
-
-    files1.forEach( f => createFile(env.src, f) );
-
-    await delay( 100 );
-    env.prop = setProp({
-      targets: [env.srcName],
-      ignores: [],
-      UPLOAD_DIR: env.desName,
-    });
-    await delay( 10 );
-
-    files2.forEach( f => createFile(env.src, f) );
-    invalid.forEach( f => createFile(env.src, f) );
-
-    env.server = spawn( 'node', [relativePath('../src/server.js')] );
-    await delay( 2000 );
-  }, 20 * 1000 );
-
-  afterAll(() => {
-    fs.rmdirSync( env.src, {recursive: true} );
-    fs.rmdirSync( env.des, {recursive: true} );
-    env.server.kill( 'SIGINT' );
-  });
+  beforeAll( () => initEnvironment(env), 20 * 1000 );
+  afterAll( cleanupEnvironment );
 
   test('default upload test', done => {
-    const client = spawn(
-      'node', 
-      [relativePath( '../src/client.js' )],
-    );
-    client.stdout.on( 'data', d => console.log(`${d}`) );
+    const client = runClient();
+    if( env.printLog ) {
+      client.stdout.on( 'data', d => console.log(`${d}`) );
+    }
 
     client.on('close', () => {
-      const uploadedFiles = fs
-          .readdirSync( env.des, {withFileTypes: true} )
-          .map( f => f.name );
-      console.log( uploadedFiles );
+      const files = uploadedFiles( env );
+      const uploaded = files.length === files2.length;
+      const valid = files.every( isValid );
 
-      const uploaded = uploadedFiles.length === files2.length;
-      const valid = uploadedFiles.every( isValid );
-
-      console.log(
-`
-Expected upload count is ${files2.length}
-Upload files are valid? ${valid}
-Uploaded all valid files? ${uploaded}
-`
-      );
       expect( valid && uploaded ).toBeTruthy();
       done();
     });
