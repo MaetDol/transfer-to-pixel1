@@ -7,20 +7,19 @@ function lookupNewFile( dir, ignore, LAST_UPDATE ){
   const dirs = [dir];
   while( dirs.length ) {
     const currentDir = dirs.pop();
-    if( ignore.includes(currentDir) ) continue;
+    if( ignore.dir(currentDir) ) continue;
 
     fs
       .readdirSync( currentDir )
       .forEach( name => {
         const fullPath = path.join( currentDir, name );
-        if( ignore.includes(fullPath) ) return;
-
         const stat = fs.statSync( fullPath );
         if( stat.isDirectory() ) {
           dirs.push( fullPath );
           return;
         }
         if( LAST_UPDATE > stat.ctime ) return;
+        if( ignore.file(fullPath) ) return;
 
         result.push( fullPath );
       });
