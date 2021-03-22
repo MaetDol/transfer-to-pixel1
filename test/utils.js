@@ -87,11 +87,15 @@ function cleanupEnvironment( env ) {
     env.server.kill( 'SIGINT' );
 }
 
-function runClient() {
-  return spawn(
+function runClient( env ) {
+  const client = spawn(
     'node', 
     [relativePath( '../src/client.js' )],
   );
+  if( env.printLog ) {
+    client.stdout.on( 'data', d => console.log(`${d}`) );
+  }
+  return client;
 }
 
 function uploadedFiles( env ) {

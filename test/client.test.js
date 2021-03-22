@@ -28,7 +28,6 @@ const {
 
 describe('Upload valid files only', () => {
   const env = {
-    printLog: false,
     newFiles: files1,
     oldFiles: [].concat( files2, invalid ),
   };
@@ -37,12 +36,7 @@ describe('Upload valid files only', () => {
   afterAll( cleanupEnvironment );
 
   test('default upload test', done => {
-    const client = runClient();
-    if( env.printLog ) {
-      client.stdout.on( 'data', d => console.log(`${d}`) );
-    }
-
-    client.on('close', () => {
+    runClient( env ).on('close', () => {
       const files = uploadedFiles( env );
       const uploaded = files.length === files2.length;
       const valid = files.every( isValid );
@@ -51,6 +45,7 @@ describe('Upload valid files only', () => {
       done();
     });
   });
+});
 
 
 });
