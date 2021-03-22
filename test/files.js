@@ -57,6 +57,10 @@ function isValid( filename ) {
 	return !invalid.some( isMatchedFile(filename) );
 }
 
+function contains( file, list ) {
+	return list.some( isMatchedFile(file) );
+}
+
 function isIgnoredFile( filename ) {
 	return ignores.find( isMatchedFile(filename) ) !== undefined;
 }
@@ -70,4 +74,5 @@ module.exports = {
 	isIgnoredFile,
 	createFile,
 	wholeFiles,
+	contains,
 }
