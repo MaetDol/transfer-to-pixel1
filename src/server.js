@@ -4,9 +4,7 @@ const path = require('path');
 const log = require('./utils/logger.js');
 const Properties = require('./utils/Properties.js');
 
-const prop = new Properties(
-  path.resolve( __dirname, '../properties.json' ),
-);
+const prop = new Properties();
 const { ROOT, PORT, UPLOAD_DIR } = prop.value;
 
 const UPLOAD = path.join( ROOT, UPLOAD_DIR );

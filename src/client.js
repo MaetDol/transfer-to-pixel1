@@ -7,9 +7,7 @@ const Properties = require('./utils/Properties.js');
 const { File, Ignores, getNewFiles } = require('./utils/File');
 
 log.info( new Date() );
-const prop = new Properties(
-  path.resolve( __dirname, '../properties.json' ),
-);
+const prop = new Properties();
 const { 
   LAST_UPDATE,
   ROOT,

@@ -18,7 +18,7 @@ function delay( time ) {
 }
 
 function setProp( newProp ) {
-  const prop = new Properties( relativePath('../properties.json') );
+  const prop = new Properties();
 
   prop.write({
     ...prop.value,
