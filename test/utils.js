@@ -86,17 +86,17 @@ async function initEnvironment( env ) {
 
   if( env.oldFiles ) {
     env.oldFiles.forEach( f => createFile(env.src, f) );
+    await delay( 30 );
   }
 
-  await delay( 100 );
   env.prop = setProp({
     targets: [env.srcName],
     ignores: [...(env.ignores || '')],
     UPLOAD_DIR: env.desName,
   });
-  await delay( 10 );
 
   if( env.newFiles ) {
+    await delay( 30 );
     env.newFiles.forEach( f => createFile(env.src, f) );
   }
 
