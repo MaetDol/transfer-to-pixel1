@@ -100,8 +100,18 @@ async function initEnvironment( env ) {
     env.newFiles.forEach( f => createFile(env.src, f) );
   }
 
+  let isReady = false;
+  let resolver = null;
+  const promise = new Promise( resolve => resolver = resolve );
   env.server = spawn( 'node', [relativePath('../src/server.js')] );
-  await delay( 2000 );
+  env.server.stdout.on( 'data', data => {
+    if( env.printLog ) env.printLog( `SERVER: ${data}` );
+    if( isReady ) return;
+    isReady = true;
+    resolver();
+  });
+
+  return promise;
 }
 
 /**
