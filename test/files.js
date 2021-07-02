@@ -36,6 +36,11 @@ function wholeFiles() {
 	return [].concat( ignores, invalid, files1, files2 );
 }
 
+/**
+ * `root` 디렉터리를 루트로 `fullpath`에 해당하는 파일을 생성합니다
+ * @param {string} root
+ * @param {string} fullpath
+ */
 function createFile( root, fullpath ) {
 	const info = path.parse( fullpath );
 	fs.mkdirSync(
