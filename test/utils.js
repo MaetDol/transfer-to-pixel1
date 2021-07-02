@@ -130,7 +130,7 @@ function runClient( env ) {
     [relativePath( '../src/client.js' )],
   );
   if( env.printLog ) {
-    client.stdout.on( 'data', d => console.log(`${d}`) );
+    client.stdout.on( 'data', d => env.printLog(`CLIENT: ${d}`) );
   }
   return client;
 }

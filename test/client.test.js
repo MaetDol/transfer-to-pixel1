@@ -29,6 +29,7 @@ describe('Upload valid files only', () => {
   const env = {
     oldFiles: files1,
     newFiles: [].concat( files2, invalid ),
+    // printLog: m => console.log(`${m}`),
   };
 
   beforeAll( () => initEnvironment(env), 20 * 1000 );
