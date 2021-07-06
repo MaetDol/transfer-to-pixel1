@@ -1,8 +1,9 @@
 const fs = require('fs');
+const path = require('path');
 
 class Properties {
-  constructor( path ) {
-    this.path = path;
+  constructor() {
+    this.path = path.resolve( __dirname, '../../properties.json' );
     this.read();
   }
 

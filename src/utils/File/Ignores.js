@@ -1,8 +1,11 @@
+const Properties = require('../Properties');
+
 class Pattern {
   constructor( path ) {
     this.isDir = path.slice(-1) === '/';
     this.isRoot = path[0] === '/';
     this.path = path.split('**');
+    this.root = new Properties().value.ROOT;
   }
 
   isMatched( target ) {
