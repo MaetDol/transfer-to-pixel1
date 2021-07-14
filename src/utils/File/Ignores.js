@@ -12,41 +12,36 @@ class DirPattern {
   }
 
   isMatched( fullPathOfTarget ) {
-    const targetPaths = fullPathOfTarget.split( '/' );
-    const ignoreItor = toIterator( this.paths );
-    const targetItor = toIterator( targetPaths );
-  
-    const nextIgnore = () => ignoreItor.next().value;
-    const nextTarget = () => targetItor.next().value;
-
-    if( this.isRoot ) {
-      return this.checkRootDirectory( fullPathOfTarget );
-    }
-
-  }
-
-  checkRootDirectory( fullPathOfTarget ) {
     const targetPaths = getPathes( fullPathOfTarget );
     const ignoreItor = toIterator( this.paths );
     const targetItor = toIterator( targetPaths );
-  
+
+    if( this.isRoot ) {
+      return this.checkMatch( targetItor, ignoreItor );
+    }
+
+    checkMultipleWildPath( nextIgnore, '', nextTarget );
+    return this.checkMatch( targetItor, ignoreItor, true );
+  }
+
+  checkMatch( targetItor, ignoreItor, retryOnMismatch=false ) {
     const nextIgnore = () => ignoreItor.next().value;
     const nextTarget = () => targetItor.next().value;
 
     let ignore;
     let target;
-    let hasWildcard = false;
 
     while( true ) {
       target = nextTarget();
       ignore = nextIgnore();
 
+      console.log({ target, ignore })
       if( ignore === undefined ) return true;
       if( target === undefined ) return false;
 
       if( ignore === '*' ) continue;
       if( ignore === '**' ) {
-        hasWildcard = true;
+        retryOnMismatch = true;
         const valid = checkMultipleWildPath(
           nextIgnore, target, nextTarget,
         );
@@ -55,7 +50,7 @@ class DirPattern {
       }
 
       if( ignore !== target ) {
-        if( !hasWildcard ) return false;
+        if( !retryOnMismatch ) return false;
         while( target !== ignore ) {
           target = nextTarget();
           if( !target ) return false;
