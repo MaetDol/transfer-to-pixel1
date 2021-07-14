@@ -5,7 +5,7 @@ class DirPattern {
   constructor( path ) {
     this.isRoot = path[0] === '/';
     this.path = path;
-    this.paths = path.split( '/' ).slice( 0, -1 );
+    this.paths = getPathes( path );
     this.root = this.isRoot 
       ? new Properties().value.ROOT
       : null;
@@ -19,10 +19,25 @@ class DirPattern {
     const nextIgnore = () => ignoreItor.next().value;
     const nextTarget = () => targetItor.next().value;
 
+    if( this.isRoot ) {
+      return this.checkRootDirectory( fullPathOfTarget );
+    }
+
+  }
+
+  checkRootDirectory( fullPathOfTarget ) {
+    const targetPaths = getPathes( fullPathOfTarget );
+    const ignoreItor = toIterator( this.paths );
+    const targetItor = toIterator( targetPaths );
+  
+    const nextIgnore = () => ignoreItor.next().value;
+    const nextTarget = () => targetItor.next().value;
+
     let ignore;
     let target;
     let hasWildcard = false;
-    while( this.isRoot && true ) {
+
+    while( true ) {
       target = nextTarget();
       ignore = nextIgnore();
 
@@ -47,8 +62,8 @@ class DirPattern {
         }
       }
     }
-    return false;
   }
+
 }
 
 function checkMultipleWildPath( nextIgnore, target, nextTarget ) {
@@ -66,6 +81,11 @@ function* toIterator(arr) {
   for( const item of arr ) {
     yield item;
   }
+}
+
+function getPathes( fullPath ) {
+  const pathes = fullPath.split('/');
+  return pathes.filter( p => p );
 }
 
 class FilePattern {
