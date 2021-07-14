@@ -31,11 +31,10 @@ class DirPattern {
 
       if( ignore === '*' ) continue;
       if( ignore === '**' ) {
-        // need upgrade
         hasWildcard = true;
         const valid = checkMultipleWildPath(
           nextIgnore, target, nextTarget,
-        )
+        );
         if( !valid ) return false;
         continue;
       }
