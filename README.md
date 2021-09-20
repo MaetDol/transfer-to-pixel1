@@ -2,7 +2,7 @@
 ```
 curl "https://github.com/MaetDol/transfer-to-pixel1/blob/master/init?raw=true" -L | sh
 ```
-위 명령어는 아래와 같은 일련의 순서를 거칩니다
+위 명령어는 아래와 같은 순서를 거칩니다
 1. git, nodejs, termux-api 패키지를 설치합니다
 2. 현재 레포지토리를 복제합니다
 3. 끝!(TODO: 사진 경로 및 서버 URL, 그리고 마지막 업데이트 날짜를 고를 수 있게 수정이 필요합니다)
