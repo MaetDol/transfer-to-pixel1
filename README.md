@@ -1,5 +1,5 @@
 ```
-curl "https://github.com/MaetDol/transfer-to-pixel1/blob/master/init?raw=true" | sh
+curl "https://github.com/MaetDol/transfer-to-pixel1/blob/master/init?raw=true" -L | sh
 ```
 
 
