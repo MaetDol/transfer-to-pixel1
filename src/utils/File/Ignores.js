@@ -16,17 +16,71 @@ class DirPattern {
     const ignoreItor = toIterator( this.paths );
     const targetItor = toIterator( targetPaths );
 
-    if( this.isRoot ) {
-      return this.checkMatch( targetItor, ignoreItor );
-    }
-
-    checkMultipleWildPath( nextIgnore, '', nextTarget );
-    return this.checkMatch( targetItor, ignoreItor, true );
-  }
-
-  checkMatch( targetItor, ignoreItor, retryOnMismatch=false ) {
     const nextIgnore = () => ignoreItor.next().value;
     const nextTarget = () => targetItor.next().value;
+
+    if( this.isRoot ) {
+      return this.isIgnoredRootPath( targetPaths );
+    }
+
+    const result = this.checkMatch( nextIgnore, nextTarget, true );
+    return result;
+  }
+
+  isIgnoredRootPath( targetPathes ) {
+    const ignorePathes = this.paths;
+
+    for( let i=0, j=0; i < ignorePathes.length; i++, j++) {
+      const ignorePath = ignorePathes[i];
+      if( ignorePath === '*' ) {
+        j++;
+        continue;
+      } 
+      else if( ignorePath === '**' ) {
+        return this.isIgnoredPartPath( 
+          targetPathes.slice( j ),
+          ignorePathes.slice( i + 1 )
+        );
+      } 
+      else if( ignorePath !== targetPathes[j] ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  isIgnoredPartPath( targetPathes, ignorePathes=this.paths ) {
+    for( let i=0; i < targetPathes.length; i++ ) { 
+      let start = i;
+      let dismatch = false;
+      for( let j=0; j < ignorePathes.length; j++, start++ ) {
+        const ignore = ignorePathes[j];
+        if( ignore === '*' ) {
+          start++;
+          continue;
+        }
+        else if( ignore === '**' ) {
+          const isIgnored = this.isIgnoredPartPath( 
+            targetPathes.slice( i ),
+            ignorePathes.slice( j + 1 ) 
+          );
+          if( isIgnored ) return true;
+          else {
+            dismatch = true;
+            break;
+          }
+        }
+        else if( ignore !== targetPathes[start] ) {
+          dismatch = true;
+          break;
+        }
+      }
+      if( start >= ignorePathes.length && !dismatch ) return true;
+    }
+    return false;
+  }
+
+  checkMatch( nextIgnore, nextTarget, retryOnMismatch=false ) {
 
     let ignore;
     let target;
@@ -35,7 +89,6 @@ class DirPattern {
       target = nextTarget();
       ignore = nextIgnore();
 
-      console.log({ target, ignore })
       if( ignore === undefined ) return true;
       if( target === undefined ) return false;
 
@@ -78,6 +131,10 @@ function* toIterator(arr) {
   }
 }
 
+/**
+ * @description /를 기준으로 나눈 배열을 반환합니다
+ * @param {string} fullPath 
+ */
 function getPathes( fullPath ) {
   const pathes = fullPath.split('/');
   return pathes.filter( p => p );
