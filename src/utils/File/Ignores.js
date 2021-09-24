@@ -33,7 +33,6 @@ class DirPattern {
     for( let i=0, j=0; i < ignorePathes.length; i++, j++) {
       const ignorePath = ignorePathes[i];
       if( ignorePath === '*' ) {
-        j++;
         continue;
       } 
       else if( ignorePath === '**' ) {
@@ -56,7 +55,6 @@ class DirPattern {
       for( let j=0; j < ignorePathes.length; j++, start++ ) {
         const ignore = ignorePathes[j];
         if( ignore === '*' ) {
-          start++;
           continue;
         }
         else if( ignore === '**' ) {
