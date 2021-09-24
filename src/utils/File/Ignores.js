@@ -23,7 +23,7 @@ class DirPattern {
       return this.isIgnoredRootPath( targetPaths );
     }
 
-    const result = this.checkMatch( nextIgnore, nextTarget, true );
+    const result = this.isIgnoredPartPath( targetPaths );
     return result;
   }
 

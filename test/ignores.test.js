@@ -1,7 +1,7 @@
 const Ignores = require("../src/utils/File/Ignores");
 
 
-describe('Ignore root directory test', () => {
+describe('Root dir test', () => {
 	const ignoreMe = [
 		'/a/z/',
 		'/a/z/c/',
@@ -31,7 +31,7 @@ describe('Ignore root directory test', () => {
 	];
 	const ignore = new Ignores( ignoreDirs );
 
-	test('Director ignore test', () => {
+	test('Directory ignore test', () => {
 		const rest = ignoreMe.filter( d => !ignore.dir(d) );
 		expect( rest.length ).toEqual( 0 );
 	});
@@ -42,4 +42,46 @@ describe('Ignore root directory test', () => {
 			expect.arrayContaining( doNotIgnoreMe )
 		);
 	});
+});
+
+describe('Part of path ignore test', () => {
+	const dirs = [
+		'/a/',
+		'/b/b/b/a/',
+		'/b/b/c/',
+		'/0/emulated/kakao/.thumbnail/',
+		'/d/c/d/d/',
+		'/e/q/d/d/d/e/f/g/',
+	];
+	const doNotIgnoreMe = [
+		'/b/',
+		'/b/b/d/',
+		'/0/emulated/kakao/',
+		'/d/c/d/',
+		'/d/g/e/e/d/f/'
+	];
+	const ignoreDirs = [
+		'a/',
+		'b/c/',
+		'kakao/.thumbnail/',
+		'c/*/d/',
+		'd/**/e/f/',
+	]
+	const ignore = new Ignores( ignoreDirs );
+
+	test('Directory ignore test', () => {
+		const rest = dirs.filter( d => !ignore.dir(d) );
+		expect( rest.length ).toEqual( 0 );
+	});
+
+	test('Do not ignore test', () => {
+		const rest = doNotIgnoreMe.filter( d => !ignore.dir(d) );
+		expect( rest ).toEqual(
+			expect.arrayContaining( doNotIgnoreMe )
+		);
+	});
+
+	test('Empty test', () => {
+		expect(0).toEqual(0);
+	})
 });
