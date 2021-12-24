@@ -8,6 +8,8 @@ class Pattern {
   isMatched( target ) {
     return false;
   }
+  
+
 }
 
 class Ignores {
@@ -37,6 +39,40 @@ class Ignores {
 
   static parse( str ) {
     return new Pattern( str );
+  }
+}
+
+class Ignores {
+  constructor( pathes ) {
+    this.pathes = pathes;
+    this.dirPathes = this.parse(
+      pathes.filter( p => p.slice(-1) === '/' )
+    );
+    this.filePathes = this.parse(
+      pathes.filter( p => p.slice(-1) !== '/' )
+    );
+  }
+
+  dir( path ) {
+    return this.dirPathes.some( ignore => ignore.test(path) )
+  }
+
+  file( path ) {
+    return this.filePathes.some( ignore => ignore.test(path) )
+  }
+
+  parse( pathes ) {
+    return pathes.map( path => {
+      const isStartFromRoot = /^\//.test( path );
+      if( isStartFromRoot ) {
+        path = '^' + path;
+      }
+
+      path.replace('/*/', '/[^/]+/');
+      path.replace('/**/', '/([^/]+/)+');
+
+      return new RegExp( path );
+    });
   }
 }
 
