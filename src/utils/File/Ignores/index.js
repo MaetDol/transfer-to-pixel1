@@ -63,15 +63,25 @@ class Ignores {
 
   parse( pathes ) {
     return pathes.map( path => {
+      let escapedPath = path.replace(
+        /[.*+?^${}()|[\]\\]/g, 
+        '\\$&'
+      );
+
       const isStartFromRoot = /^\//.test( path );
       if( isStartFromRoot ) {
-        path = '^' + path;
+        escapedPath = '^' + escapedPath;
       }
+      const isFile = path.slice(-1) !== '/';
+      if( isFile ) {
+        escapedPath += '$';
+      }
+      
+      escapedPath = escapedPath.replace(/\/\\\*\//g, '/[^/]+/');
+      escapedPath = escapedPath.replace(/\/\\\*\\\*\//g, '/([^/]+/)+');
+      escapedPath = escapedPath.replace(/\\\*(?![\/*])/g, '[^/]*');
 
-      path.replace('/*/', '/[^/]+/');
-      path.replace('/**/', '/([^/]+/)+');
-
-      return new RegExp( path );
+      return new RegExp( escapedPath );
     });
   }
 }
