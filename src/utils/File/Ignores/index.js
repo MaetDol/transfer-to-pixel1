@@ -18,13 +18,29 @@ class Ignores {
   }
 
   parse( pathes ) {
-    const escape = part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapeRegExp = part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const singleAsterisk = part => part.replace(/^\*$/, '[^/]+');
     const doubleAsterisk = part => part.replace(/^\*{2}$/, '([^/]+/?)+');
     const asteriskInText = part => part.replace(
       /([^*]*)\*([^*]+)|([^*]+)\*([^*]*)/, 
-      (match, group1, group2) => escape(group1) + '[^/]*' + escape(group2)
+      (_, group1, group2) => escapeRegExp(group1) + '[^/]*' + escapeRegExp(group2)
     );
+    const escape = part => {
+      const escapeSingleAsterisk = singleAsterisk( part );
+      if( escapeSingleAsterisk !== part ) {
+        return escapeSingleAsterisk;
+      }
+      const escapeDoubleAsterisk = doubleAsterisk( part );
+      if( escapeDoubleAsterisk !== part ) {
+        return escapeDoubleAsterisk;
+      }
+      const escapeAsteriskInText = asteriskInText( part );
+      if( escapeAsteriskInText !== part ) {
+        return escapeAsteriskInText;
+      }
+      return escapeRegExp( part );
+    }
+    
     return pathes.map( path => {
       const parts = path.split('/');
 
@@ -39,21 +55,6 @@ class Ignores {
       }
 
       for( let i=1; i < parts.length-1; i++ ) {
-        const escapeSingleAsterisk = singleAsterisk( parts[i] );
-        if( escapeSingleAsterisk !== parts[i] ) {
-          parts[i] = escapeSingleAsterisk;
-          continue;
-        }
-        const escapeDoubleAsterisk = doubleAsterisk( parts[i] );
-        if( escapeDoubleAsterisk !== parts[i] ) {
-          parts[i] = escapeDoubleAsterisk;
-          continue;
-        }
-        const escapeAsteriskInText = asteriskInText( parts[i] );
-        if( escapeAsteriskInText !== parts[i] ) {
-          parts[i] = escapeAsteriskInText;
-          continue;
-        }
         parts[i] = escape( parts[i] );
       }
       
