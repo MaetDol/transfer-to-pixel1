@@ -1,10 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const http = require('http');
 const log = require('./utils/logger.js');
-const PromisePool = require('./utils/PromisePool.js');
 const Properties = require('./utils/Properties.js');
 const { File, Ignores, getNewFiles } = require('./utils/File');
+const { send, createRequestFunction } = require('./utils/request.js');
 
 log.info( new Date() );
 const prop = new Properties(
@@ -25,8 +24,8 @@ prop.write({
   LAST_UPDATE: new Date(),
 });
 
+const request = createRequestFunction( SERVER, PORT );
 const ignores = new Ignores( ignorePaths, ROOT );
-const promisePool = new PromisePool( 300 * 1024 * 1024 );
 
 Promise.all( getNewFiles(ROOT, targets, ignores, LAST_UPDATE).map( async d => {
   await 0;
@@ -38,7 +37,7 @@ Promise.all( getNewFiles(ROOT, targets, ignores, LAST_UPDATE).map( async d => {
     return null;
   }
 
-  return send( file )
+  return send( file, DELETE_AFTER_UPLOAD, request )
     .finally(_=> log.info(`Upload is done "${d}"`, true))
     .catch( e => {
       log.err(`Failed send file: ${d}, because ${e}`);
@@ -59,47 +58,4 @@ Promise.all( getNewFiles(ROOT, targets, ignores, LAST_UPDATE).map( async d => {
     process.exit(0);
   }
 });
-
-
-async function send( file ){
-  const headers = {
-    'Content-Type': `${file.mediaType}/${file.ext}`,
-    'Content-Disposition': `attachment; filename=\"${encodeURI(file.name)}\"`,
-  };
-
-  return promisePool
-    .push( _=> asyncRequest(headers, file.read()), file.size)
-    .then( code => {
-      if( DELETE_AFTER_UPLOAD ) file.delete();
-      return code;
-    })
-    .catch( code => {
-      log.err(`Upload "${file.name}", ${file.readableSize()}, but got an : ${code}`) 
-      return {path: file.path, mode: file.mode};
-    });
-}
-
-function asyncRequest( header, content ){
-  return new Promise(( resolve, reject ) => {
-    const req = http.request({
-      hostname: SERVER,
-      method: 'POST',
-      port: PORT,
-      headers: header,
-    }, res => {
-      res.on('data', _=>0 );
-      res.on('end', _=> {
-        if( res.statusCode !== 200 ) reject( res.statusCode );
-        resolve( res.statusCode );
-      });
-    });
-
-    req.on('error', e => {
-      if( e ) reject(e);
-    });
-
-    req.write( content );
-    req.end();
-  });
-}
 
