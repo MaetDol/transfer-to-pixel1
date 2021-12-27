@@ -8,7 +8,7 @@
     ],
     "ROOT": "/storage/emulated/0/",
     "UPLOAD_DIR": "/DCIM/transfered/",
-    "DELETE_AFTER_UPLOAD": true,
+    "DELETE_AFTER_UPLOAD": false,
     "LOGGING": true,
     "LOG_DIR": "/Download/logs"
 }
