@@ -25,7 +25,7 @@ prop.write({
   LAST_UPDATE: new Date(),
 });
 
-const ignores = new Ignores( ignorePaths );
+const ignores = new Ignores( ignorePaths, ROOT );
 const promisePool = new PromisePool( 300 * 1024 * 1024 );
 
 Promise.all( getNewFiles(ROOT, targets, ignores, LAST_UPDATE).map( async d => {

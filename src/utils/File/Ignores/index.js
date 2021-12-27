@@ -1,5 +1,8 @@
 class Ignores {
-  constructor( pathes ) {
+  constructor( pathes, ROOT='' ) {
+    this.ROOT = ROOT.slice(-1) === '/' 
+      ? ROOT.slice(0, -1)
+      : ROOT;
     this.pathes = pathes;
     this.dirPathes = this.parse(
       pathes.filter( p => p.slice(-1) === '/' )
@@ -50,7 +53,7 @@ class Ignores {
 
       const isStartFromRoot = parts[0] === '';
       parts[0] = isStartFromRoot
-        ? '^'
+        ? '^' + escape( this.ROOT )
         : parts.length === 1
           ? parts[0]
           : escape( parts[0] );
