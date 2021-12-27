@@ -10,6 +10,9 @@ class Ignores {
   }
 
   dir( path ) {
+    if( path.slice(-1) !== '/' ) {
+      path += '/';
+    }
     return this.dirPathes.some( ignore => ignore.test(path) )
   }
 
@@ -23,7 +26,8 @@ class Ignores {
     const doubleAsterisk = part => part.replace(/^\*{2}$/, '([^/]+/?)+');
     const asteriskInText = part => part.replace(
       /([^*]*)\*([^*]+)|([^*]+)\*([^*]*)/, 
-      (_, group1, group2) => escapeRegExp(group1) + '[^/]*' + escapeRegExp(group2)
+      (_, group1, group2, group3, group4) => 
+        escapeRegExp(group1 ?? group3) + '[^/]*' + escapeRegExp(group2 ?? group4)
     );
     const escape = part => {
       const escapeSingleAsterisk = singleAsterisk( part );
@@ -45,9 +49,11 @@ class Ignores {
       const parts = path.split('/');
 
       const isStartFromRoot = parts[0] === '';
-      if( isStartFromRoot ) {
-        parts[0] = '^';
-      }
+      parts[0] = isStartFromRoot
+        ? '^'
+        : parts.length === 1
+          ? parts[0]
+          : escape( parts[0] );
       const lastPart = parts[parts.length-1];
       const isFile = lastPart !== '';
       if( isFile ) {
