@@ -1,59 +1,41 @@
+const { convertSeparator, escape, isDirectory } = require('./utils.js');
+
 class Ignores {
   constructor( pathes, ROOT='' ) {
-    this.ROOT = ROOT.slice(-1) === '/' 
+    ROOT = convertSeparator( ROOT );
+    this.ROOT = isDirectory( ROOT )
       ? ROOT.slice(0, -1)
       : ROOT;
-    this.pathes = pathes;
+    this.pathes = pathes.map( convertSeparator );
     this.dirPathes = this.parse(
-      pathes.filter( p => p.slice(-1) === '/' )
+      pathes.filter( isDirectory )
     );
     this.filePathes = this.parse(
-      pathes.filter( p => p.slice(-1) !== '/' )
+      pathes.filter( p => !isDirectory(p) )
     );
   }
 
   dir( path ) {
-    if( path.slice(-1) !== '/' ) {
+    path = convertSeparator( path );
+    if( !isDirectory(path) ) {
       path += '/';
     }
     return this.dirPathes.some( ignore => ignore.test(path) )
   }
 
   file( path ) {
+    path = convertSeparator( path );
     return this.filePathes.some( ignore => ignore.test(path) )
   }
 
   parse( pathes ) {
-    const escapeRegExp = part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const singleAsterisk = part => part.replace(/^\*$/, '[^/]+');
-    const doubleAsterisk = part => part.replace(/^\*{2}$/, '([^/]+/?)+');
-    const asteriskInText = part => part.replace(
-      /([^*]*)\*([^*]+)|([^*]+)\*([^*]*)/, 
-      (_, group1, group2, group3, group4) => 
-        escapeRegExp(group1 ?? group3) + '[^/]*' + escapeRegExp(group2 ?? group4)
-    );
-    const escape = part => {
-      const escapeSingleAsterisk = singleAsterisk( part );
-      if( escapeSingleAsterisk !== part ) {
-        return escapeSingleAsterisk;
-      }
-      const escapeDoubleAsterisk = doubleAsterisk( part );
-      if( escapeDoubleAsterisk !== part ) {
-        return escapeDoubleAsterisk;
-      }
-      const escapeAsteriskInText = asteriskInText( part );
-      if( escapeAsteriskInText !== part ) {
-        return escapeAsteriskInText;
-      }
-      return escapeRegExp( part );
-    }
-    
+    const root = escape( this.ROOT );
     return pathes.map( path => {
       const parts = path.split('/');
 
       const isStartFromRoot = parts[0] === '';
       parts[0] = isStartFromRoot
-        ? '^' + escape( this.ROOT )
+        ? '^' + root 
         : parts.length === 1
           ? parts[0]
           : escape( parts[0] );
