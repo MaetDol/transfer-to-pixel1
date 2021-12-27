@@ -51,7 +51,7 @@ describe('Upload without ignore files', () => {
     printLog: false,
     oldFiles: files1,
     newFiles: [].concat( files2, invalid, ignores ),
-    ignores: ['ignore/', '.*/'],
+    ignores: ['/__origin/ignore/', '.*/'],
   };
 
   beforeAll( () => initEnvironment(env), 20 * 1000 );
