@@ -18,26 +18,46 @@ class Ignores {
   }
 
   parse( pathes ) {
+    const escape = part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const singleAsterisk = part => part.replace(/^\*$/, '[^/]+');
+    const doubleAsterisk = part => part.replace(/^\*{2}$/, '([^/]+/?)+');
+    const asteriskInText = part => part.replace(
+      /([^*]*)\*([^*]+)|([^*]+)\*([^*]*)/, 
+      (match, group1, group2) => escape(group1) + '[^/]*' + escape(group2)
+    );
     return pathes.map( path => {
-      let escapedPath = path.replace(
-        /[.*+?^${}()|[\]\\]/g, 
-        '\\$&'
-      );
+      const parts = path.split('/');
 
-      const isStartFromRoot = /^\//.test( path );
+      const isStartFromRoot = parts[0] === '';
       if( isStartFromRoot ) {
-        escapedPath = '^' + escapedPath;
+        parts[0] = '^';
       }
-      const isFile = path.slice(-1) !== '/';
+      const lastPart = parts[parts.length-1];
+      const isFile = lastPart !== '';
       if( isFile ) {
-        escapedPath += '$';
+        parts[parts.length-1] = escape( lastPart ) + '$';
+      }
+
+      for( let i=1; i < parts.length-1; i++ ) {
+        const escapeSingleAsterisk = singleAsterisk( parts[i] );
+        if( escapeSingleAsterisk !== parts[i] ) {
+          parts[i] = escapeSingleAsterisk;
+          continue;
+        }
+        const escapeDoubleAsterisk = doubleAsterisk( parts[i] );
+        if( escapeDoubleAsterisk !== parts[i] ) {
+          parts[i] = escapeDoubleAsterisk;
+          continue;
+        }
+        const escapeAsteriskInText = asteriskInText( parts[i] );
+        if( escapeAsteriskInText !== parts[i] ) {
+          parts[i] = escapeAsteriskInText;
+          continue;
+        }
+        parts[i] = escape( parts[i] );
       }
       
-      escapedPath = escapedPath.replace(/\/\\\*\//g, '/[^/]+/');
-      escapedPath = escapedPath.replace(/\/\\\*\\\*\//g, '/([^/]+/)+');
-      escapedPath = escapedPath.replace(/\\\*(?![\/*])/g, '[^/]*');
-
-      return new RegExp( escapedPath );
+      return new RegExp( parts.join('/') );
     });
   }
 }
