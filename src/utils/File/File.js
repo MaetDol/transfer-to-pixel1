@@ -14,7 +14,7 @@ class File {
   }
 
   mediaTypeOf(){
-    if( this.ext.match(/jpe?g|gif|png|bmp|tiff/i) ){
+    if( this.ext.match(/jpe?g|gif|png|bmp|tiff|webp/i) ){
       return 'image';
     }
     if( this.ext.match(/mp4[pv]?|mp3|webm|avi|wmv/i) ){
