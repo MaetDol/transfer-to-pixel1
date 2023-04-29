@@ -5,20 +5,20 @@ const { spawn } = require('child_process');
 const Properties = require('../src/utils/Properties');
 const { createFile } = require('./files');
 
-function rootPath( p ) {
-  return path.join( __dirname, p );
+function rootPath(p) {
+  return path.join(__dirname, p);
 }
 
-function relativePath( p ) {
-  return path.resolve( __dirname, p );
+function relativePath(p) {
+  return path.resolve(__dirname, p);
 }
 
-function delay( time ) {
-  return new Promise( resolve => setTimeout(resolve, time) );
+function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
 }
 
-function setProp( newProp ) {
-  const prop = new Properties( relativePath('../properties.json') );
+function setProp(newProp) {
+  const prop = new Properties(relativePath('../properties.json'));
 
   prop.write({
     ...prop.value,
@@ -27,13 +27,8 @@ function setProp( newProp ) {
     PORT: '9000',
     LAST_UPDATE: new Date(),
 
-    targets: [
-      '__origin',
-    ],
-    ignores: [
-      '/ignore',
-      '/.thumb',
-    ],
+    targets: ['__origin'],
+    ignores: ['/ignore', '/.thumb'],
     DELETE_AFTER_UPLOAD: false,
 
     ROOT: __dirname,
@@ -41,74 +36,69 @@ function setProp( newProp ) {
     LOG_DIR: 'test_logs',
     LOGGING: true,
 
-    ...newProp
+    ...newProp,
   });
 
-	return prop;
+  return prop;
 }
 
-async function initEnvironment( env ) {
+async function initEnvironment(env) {
   jest.resetModules();
-  if( !env.src ) {
+  if (!env.src) {
     env.srcName = '__origin';
-    env.src = rootPath( env.srcName );
+    env.src = rootPath(env.srcName);
   }
-  if( !env.des ) {
+  if (!env.des) {
     env.desName = '__received';
-    env.des = rootPath( env.desName );
+    env.des = rootPath(env.desName);
   }
 
-  fs.mkdirSync( env.src, {recursive: true} );
-  fs.mkdirSync( env.des, {recursive: true} );
+  fs.mkdirSync(env.src, { recursive: true });
+  fs.mkdirSync(env.des, { recursive: true });
 
-  if( env.oldFiles ) {
-    env.oldFiles.forEach( f => createFile(env.src, f) );
+  if (env.oldFiles) {
+    env.oldFiles.forEach(f => createFile(env.src, f));
   }
 
-  await delay( 100 );
+  await delay(100);
   env.prop = setProp({
     targets: [env.srcName],
     ignores: [...(env.ignores || '')],
     UPLOAD_DIR: env.desName,
   });
-  await delay( 10 );
+  await delay(10);
 
-  if( env.newFiles ) {
-    env.newFiles.forEach( f => createFile(env.src, f) );
+  if (env.newFiles) {
+    env.newFiles.forEach(f => createFile(env.src, f));
   }
 
-  env.server = spawn( 'node', [relativePath('../src/server.js')] );
-  await delay( 2000 );
+  env.server = spawn('node', [relativePath('../src/server.js')]);
+  await delay(2000);
 }
 
-function cleanupEnvironment( env ) {
-    fs.rmdirSync( env.src, {recursive: true} );
-    fs.rmdirSync( env.des, {recursive: true} );
-    env.server.kill( 'SIGINT' );
+function cleanupEnvironment(env) {
+  fs.rmdirSync(env.src, { recursive: true });
+  fs.rmdirSync(env.des, { recursive: true });
+  env.server.kill('SIGINT');
 }
 
-function runClient( env ) {
-  const client = spawn(
-    'node', 
-    [relativePath( '../src/client.js' )],
-  );
-  if( env.printLog ) {
-    client.stdout.on( 'data', d => console.log(`${d}`) );
+function runClient(env) {
+  const client = spawn('node', [relativePath('../src/client.js')]);
+  if (env.printLog) {
+    client.stdout.on('data', d => console.log(`${d}`));
   }
   return client;
 }
 
-function uploadedFiles( env ) {
-  return fs
-    .readdirSync( env.des, {withFileTypes: true} )
-    .map( f => f.name );
+function uploadedFiles(env) {
+  return fs.readdirSync(env.des, { withFileTypes: true }).map(f => f.name);
 }
 
 module.exports = {
-	rootPath,
-	relativePath,
-	delay,
-	setProp,
+  rootPath,
+  relativePath,
+  delay,
+  setProp,
   initEnvironment,
   cleanupEnvironment,
   runClient,

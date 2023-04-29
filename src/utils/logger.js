@@ -1,53 +1,48 @@
 const fs = require('fs');
 const path = require('path');
 
-const {
-  LOG_DIR,
-  LOGGING,
-  ROOT,
-} = JSON.parse( fs.readFileSync(
-  path.resolve( __dirname, '../../properties.json' ),
-  'UTF-8',
-));
-const BASE = path.join( ROOT, LOG_DIR );
+const { LOG_DIR, LOGGING, ROOT } = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../../properties.json'), 'UTF-8')
+);
+const BASE = path.join(ROOT, LOG_DIR);
 
 module.exports = {
   info: (obj, isDisplayOnly) => {
-    write( `[INFO] ${stringify( obj )}`, isDisplayOnly );
+    write(`[INFO] ${stringify(obj)}`, isDisplayOnly);
   },
   err: (obj, isDisplayOnly) => {
-    write( `[ERROR] ${stringify( obj )}`, isDisplayOnly );
-  }
+    write(`[ERROR] ${stringify(obj)}`, isDisplayOnly);
+  },
 };
 
-function write( str, displayOnly ) {
-  if( !LOGGING ) return;
+function write(str, displayOnly) {
+  if (!LOGGING) return;
 
-  if( displayOnly ){
+  if (displayOnly) {
     console.log(`${str}`);
     return;
   }
 
-  const { year, month, date }= now();
-  const dirPath = path.resolve( BASE, `./${year}`);
-  if( !fs.existsSync(dirPath) ){
-    fs.mkdirSync( dirPath, { recursive: true });
+  const { year, month, date } = now();
+  const dirPath = path.resolve(BASE, `./${year}`);
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
   }
 
-  fs.writeFileSync( 
-    path.resolve( dirPath, `./${pad(month)}${pad(date)}.log` ),
-    str + '\n', 
-    {flag:'a'},
+  fs.writeFileSync(
+    path.resolve(dirPath, `./${pad(month)}${pad(date)}.log`),
+    str + '\n',
+    { flag: 'a' }
   );
-  console.log( str );
+  console.log(str);
 }
 
-function pad( v ){
+function pad(v) {
   return v.toString().padStart(2, 0);
 }
 
-function now(){
-  const date = new Date( new Date().getTime() + 9 * 60*60*1000 );
+function now() {
+  const date = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
   return {
     year: date.getUTCFullYear(),
     month: date.getUTCMonth() + 1,
@@ -55,9 +50,9 @@ function now(){
   };
 }
 
-function stringify( input ){
-  if( typeof input === 'object' ) {
-    return JSON.stringify( input, null, 2 );
+function stringify(input) {
+  if (typeof input === 'object') {
+    return JSON.stringify(input, null, 2);
   }
   return input;
 }
