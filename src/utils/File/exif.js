@@ -1,0 +1,1 @@
+const exifr = require('piexifjs');
