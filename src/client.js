@@ -36,7 +36,7 @@ Promise.all(
       return null;
     }
 
-    let shouldDelete = DELETE_AFTER_UPLOAD;
+    let isClone = false;
     if (file.isJpeg) {
       try {
         const exif = new Exif(file.read().toString('binary'));
@@ -47,7 +47,7 @@ Promise.all(
           file.write(exif.getJpegBinary(), MODIFIED_PATH);
 
           file.path = MODIFIED_PATH;
-          shouldDelete = true;
+          isClone = true;
           log.info(`\t\tRewrite dateTime EXIF to ${file.name}`);
         }
       } catch (e) {
@@ -55,12 +55,16 @@ Promise.all(
       }
     }
 
-    return send(file, shouldDelete, request)
-      .finally(_ => log.info(`Upload is done "${d}"`, true))
+    return send(file, DELETE_AFTER_UPLOAD, request)
+      .then(result => {
+        log.info(`Upload is done "${d}"`, true);
+        return result;
+      })
       .catch(e => {
         log.err(`Failed send file: ${d}, because ${e}`);
         return file;
-      });
+      })
+      .finally(() => isClone && file.delete());
   })
 ).then(results => {
   const faileds = results.filter(v => v !== 200);
