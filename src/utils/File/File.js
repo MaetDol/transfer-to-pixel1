@@ -11,6 +11,7 @@ class File {
 
     this.size = stat.size;
     this.mode = stat.mode;
+    this.birthTime = stat.birthtime;
   }
 
   mediaTypeOf() {
@@ -27,6 +28,10 @@ class File {
     return fs.readFileSync(this.path);
   }
 
+  write(data, as = this.path) {
+    fs.writeFileSync(as, data);
+  }
+
   readableSize() {
     const SUFFIX_SET = ['B', 'KB', 'MB', 'GB', 'TB'];
     let suffix = 0;
@@ -40,6 +45,10 @@ class File {
 
   delete() {
     fs.unlinkSync(this.path);
+  }
+
+  isJpeg() {
+    return /jpe?g/i.test(this.ext);
   }
 }
 
