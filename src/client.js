@@ -32,7 +32,7 @@ Promise.all(
     }
 
     let isClone = false;
-    if (file.isJpeg) {
+    if (file.isJpeg()) {
       try {
         const exif = new Exif(file.read().toString('binary'));
         if (!exif.getDateTime()) {
