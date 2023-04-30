@@ -11,7 +11,15 @@ class File {
 
     this.size = stat.size;
     this.mode = stat.mode;
-    this.birthTime = stat.birthtime;
+    this.birthTime = Math.min(
+      ...[
+        stat.birthtime,
+        stat.atime,
+        stat.mtime,
+        stat.ctime,
+        new Date(),
+      ].filter(t => t instanceof Date)
+    );
   }
 
   mediaTypeOf() {
