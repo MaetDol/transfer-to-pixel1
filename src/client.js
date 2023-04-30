@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const log = require('./utils/logger.js');
 const Properties = require('./utils/Properties.js');
-const { File, Ignores, getNewFiles } = require('./utils/File');
+const { File, Ignores, getNewFiles, Exif } = require('./utils/File');
 const { send, createRequestFunction } = require('./utils/request.js');
 
 log.info(new Date());
@@ -36,7 +36,26 @@ Promise.all(
       return null;
     }
 
-    return send(file, DELETE_AFTER_UPLOAD, request)
+    let shouldDelete = DELETE_AFTER_UPLOAD;
+    if (file.isJpeg) {
+      try {
+        const exif = new Exif(file.read().toString('binary'));
+        if (!exif.getDateTime()) {
+          const MODIFIED_PATH = file.path.replace(file.name, `__${file.name}`);
+
+          exif.setDateTime(file.birthTime);
+          file.write(exif.getJpegBinary(), MODIFIED_PATH);
+
+          file.path = MODIFIED_PATH;
+          shouldDelete = true;
+          log.info(`\t\tRewrite dateTime EXIF to ${file.name}`);
+        }
+      } catch (e) {
+        log.err(`Failed to modify exif at ${file.path}\n\terr: ${e}`);
+      }
+    }
+
+    return send(file, shouldDelete, request)
       .finally(_ => log.info(`Upload is done "${d}"`, true))
       .catch(e => {
         log.err(`Failed send file: ${d}, because ${e}`);
