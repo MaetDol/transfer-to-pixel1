@@ -17,11 +17,6 @@ const {
   ignores: ignorePaths,
 } = prop.value;
 
-prop.write({
-  ...prop.value,
-  LAST_UPDATE: new Date(),
-});
-
 const request = createRequestFunction(SERVER, PORT);
 const ignores = new Ignores(ignorePaths, ROOT);
 
@@ -75,6 +70,11 @@ Promise.all(
     .map(({ path, mode }) => {
       fs.chmodSync(path, mode);
     });
+
+  prop.write({
+    ...prop.value,
+    LAST_UPDATE: new Date(),
+  });
 
   if (faileds.length) {
     process.exit(1);
