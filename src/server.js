@@ -59,11 +59,11 @@ http
       }
       const filename = decodeURI(encodedName);
 
-      const l = debouncer(msg => log.info(msg), 100);
+      const l = debouncer(msg => log.info(msg), 300);
       const data = [];
       req.on('data', d => {
         data.push(d);
-        l(`${filename} - ${data.length}`);
+        l(d);
       });
       req.on('end', _ => {
         log.info(`${filename} - Ready to write.`);
