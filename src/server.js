@@ -44,6 +44,15 @@ http
       const data = [];
       req.on('data', d => data.push(d));
       req.on('end', _ => {
+        // Timeout after 20sec
+        let filename = 'undefined';
+        const abortController = new AbortController();
+        let timeoutId = setTimeout(() => {
+          log.err(`Timedout while processing ${filename}`);
+          abortController.abort();
+          res.writeHead(500).end();
+        }, 1000 * 20);
+
         try {
           const buffer = Buffer.concat(data);
           const [, encodedName] =
@@ -53,15 +62,16 @@ http
             res.writeHead(415).end();
             return;
           }
-          const name = decodeURI(encodedName);
-          save(name, buffer);
+
+          filename = decodeURI(encodedName);
+          save(filename, buffer, abortController.signal);
+          res.writeHead(200).end();
         } catch (e) {
           log.err('Failed while save file ' + e);
           res.writeHead(500).end();
-          return;
+        } finally {
+          clearTimeout(timeoutId);
         }
-
-        res.writeHead(200).end();
       });
     } catch (e) {
       log.err('Internal server error ' + e);
@@ -73,6 +83,9 @@ http
     log.info(new Date());
   });
 
-function save(name, file) {
-  fs.appendFileSync(path.resolve(UPLOAD, name), file, { flag: 'w' });
+function save(name, file, abortSignal) {
+  fs.appendFileSync(path.resolve(UPLOAD, name), file, {
+    flag: 'w',
+    signal: abortSignal,
+  });
 }
