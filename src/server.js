@@ -41,20 +41,28 @@ http
         return;
       }
 
+      const [, encodedName] =
+        req.headers['content-disposition'].match(/filename="(.+)"/);
+      if (!encodedName) {
+        log.err('filename not provided');
+        res.writeHead(415).end();
+        return;
+      }
+      const filename = decodeURI(encodedName);
+
       req.on('error', e => {
-        log.err(`Got an error while listen request ${e}`);
+        log.err(`${filename} - Got an error while listen request ${e}`);
         res.writeHead(400).end();
       });
 
       req.on('close', () => {
-        log.err(`Request was closed?`);
+        log.err(`${filename} - Request was closed?`);
       });
 
       const data = [];
       req.on('data', d => data.push(d));
       req.on('end', _ => {
         // Timeout after 20sec
-        let filename = 'undefined';
         const abortController = new AbortController();
         let timeoutId = setTimeout(() => {
           log.err(`Timedout while processing ${filename}`);
@@ -64,15 +72,6 @@ http
 
         try {
           const buffer = Buffer.concat(data);
-          const [, encodedName] =
-            req.headers['content-disposition'].match(/filename="(.+)"/);
-          if (!encodedName) {
-            log.err('filename not provided');
-            res.writeHead(415).end();
-            return;
-          }
-
-          filename = decodeURI(encodedName);
           save(filename, buffer, abortController.signal);
           res.writeHead(200).end();
         } catch (e) {
