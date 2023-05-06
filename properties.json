@@ -1,14 +1,16 @@
 {
-    "SERVER": "localhost",
-    "PORT": "9000",
-    "LAST_UPDATE": "2011-01-21T17:07:53.653Z",
-    "targets": [
-        "/Movies/",
-        "dir"
-    ],
-    "ROOT": "/storage/emulated/0/",
-    "UPLOAD_DIR": "/DCIM/transfered/",
-    "DELETE_AFTER_UPLOAD": false,
-    "LOGGING": true,
-    "LOG_DIR": "/Download/logs"
+  "ROOT": "/storage/emulated/0/",
+  "LOGGING": true,
+  "LOG_DIR": "/Download/logs",
+
+  "----------------Client": "",
+  "SERVER": "localhost",
+  "PORT": "9000",
+  "LAST_UPDATE": "2023-05-06T17:50:39.313Z",
+  "targets": ["/Movies/", "dir"],
+  "ignores": [],
+  "DELETE_AFTER_UPLOAD": false,
+
+  "----------------Server": "",
+  "UPLOAD_DIR": "/DCIM/transfered/"
 }
