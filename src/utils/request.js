@@ -1,8 +1,11 @@
 const PromisePool = require('./PromisePool.js');
 const http = require('http');
-
 const log = require('./logger.js');
-const promisePool = new PromisePool(300 * 1024 * 1024);
+
+const TIMEOUT_MS = 100 * 1000;
+const MAX_POOL_SIZE_BYTE = 300 * 1024 * 1024;
+
+const promisePool = new PromisePool(MAX_POOL_SIZE_BYTE);
 
 async function send(file, doDelete, fetcher) {
   const headers = {
@@ -12,7 +15,7 @@ async function send(file, doDelete, fetcher) {
   };
 
   const _send = () => {
-    log.info(`Sending file "${d}"..`, true);
+    log.info(`Sending file: ${file.name}`, true);
     return fetcher(headers, file.read());
   };
 
@@ -33,7 +36,7 @@ async function send(file, doDelete, fetcher) {
 function createRequestFunction(hostname, port) {
   return function request(headers, content) {
     return new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(() => reject('Timedout'), 30 * 1000);
+      const timeoutId = setTimeout(() => reject('Timedout'), TIMEOUT_MS);
       const req = http.request(
         {
           hostname,
