@@ -25,7 +25,7 @@ http
       res.setHeader('Access-Control-Allow-Origin', '*');
 
       if (req.method.toUpperCase() === 'OPTIONS') {
-        res.end();
+        res.writeHead(400).end();
         return;
       }
 
