@@ -42,7 +42,8 @@ http
       }
 
       const [, encodedName] =
-        req.headers['content-disposition'].match(/filename="(.+)"/) ?? [];
+        (req.headers['content-disposition'] ?? '').match(/filename="(.+)"/) ??
+        [];
       if (!encodedName) {
         log.err('filename not provided');
         res.writeHead(415).end();
@@ -53,7 +54,7 @@ http
       const data = [];
       req.on('data', d => data.push(d));
       req.on('end', _ => {
-        log.info(`${filename} - Read all data. writing..`);
+        log.info(`${filename} - Ready to write.`);
         // Timeout after 20sec
         const abortController = new AbortController();
         let timeoutId = setTimeout(() => {
@@ -66,6 +67,7 @@ http
           const buffer = Buffer.concat(data);
           save(filename, buffer, abortController.signal);
           res.writeHead(200).end();
+          log.info(`${filename} - Done! 200`);
         } catch (e) {
           log.err('Failed while save file ' + e);
           res.writeHead(500).end();
