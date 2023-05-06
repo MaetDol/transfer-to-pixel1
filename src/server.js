@@ -42,7 +42,7 @@ http
       }
 
       const [, encodedName] =
-        req.headers['content-disposition'].match(/filename="(.+)"/);
+        req.headers['content-disposition'].match(/filename="(.+)"/) ?? [];
       if (!encodedName) {
         log.err('filename not provided');
         res.writeHead(415).end();
@@ -53,6 +53,7 @@ http
       const data = [];
       req.on('data', d => data.push(d));
       req.on('end', _ => {
+        log.info(`${filename} - Read all data. writing..`);
         // Timeout after 20sec
         const abortController = new AbortController();
         let timeoutId = setTimeout(() => {
