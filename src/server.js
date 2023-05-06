@@ -7,6 +7,14 @@ const Properties = require('./utils/Properties.js');
 const prop = new Properties(path.resolve(__dirname, '../properties.json'));
 const { ROOT, PORT, UPLOAD_DIR } = prop.value;
 
+const debouncer = (fn, duration) => {
+  let id = 0;
+  return v => {
+    clearTimeout(id);
+    id = setTimeout(fn, duration, v);
+  };
+};
+
 const UPLOAD = path.join(ROOT, UPLOAD_DIR);
 if (!fs.existsSync(UPLOAD)) {
   log.info(`Directory ${UPLOAD} is not exists. creating..`);
@@ -51,8 +59,12 @@ http
       }
       const filename = decodeURI(encodedName);
 
+      const l = debouncer(msg => log.info(msg), 300);
       const data = [];
-      req.on('data', d => data.push(d));
+      req.on('data', d => {
+        data.push(d);
+        l(d);
+      });
       req.on('end', _ => {
         log.info(`${filename} - Ready to write.`);
         // Timeout after 20sec
