@@ -41,6 +41,15 @@ http
         return;
       }
 
+      req.on('error', e => {
+        log.err(`Got an error while listen request ${e}`);
+        res.writeHead(400).end();
+      });
+
+      req.on('close', () => {
+        log.err(`Request was closed?`);
+      });
+
       const data = [];
       req.on('data', d => data.push(d));
       req.on('end', _ => {
