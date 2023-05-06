@@ -23,7 +23,6 @@ const ignores = new Ignores(ignorePaths, ROOT);
 Promise.all(
   getNewFiles(ROOT, targets, ignores, LAST_UPDATE).map(async d => {
     await 0;
-    log.info(`Sending file "${d}"..`, true);
 
     const file = new File(d);
     if (!file.mediaType) {

@@ -8,10 +8,16 @@ async function send(file, doDelete, fetcher) {
   const headers = {
     'Content-Type': `${file.mediaType}/${file.ext}`,
     'Content-Disposition': `attachment; filename=\"${encodeURI(file.name)}\"`,
+    'Content-Length': file.size,
+  };
+
+  const _send = () => {
+    log.info(`Sending file "${d}"..`, true);
+    return fetcher(headers, file.read());
   };
 
   return promisePool
-    .push(_ => fetcher(headers, file.read()), file.size)
+    .push(_send, file.size)
     .then(code => {
       if (doDelete) file.delete();
       return code;
@@ -27,6 +33,7 @@ async function send(file, doDelete, fetcher) {
 function createRequestFunction(hostname, port) {
   return function request(headers, content) {
     return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => reject('Timedout'), 30 * 1000);
       const req = http.request(
         {
           hostname,
@@ -38,13 +45,15 @@ function createRequestFunction(hostname, port) {
           res.on('data', _ => 0);
           res.on('end', _ => {
             if (res.statusCode !== 200) reject(res.statusCode);
+            clearTimeout(timeoutId);
             resolve(res.statusCode);
           });
         }
       );
 
       req.on('error', e => {
-        if (e) reject(e);
+        clearTimeout(timeoutId);
+        reject(e);
       });
 
       req.write(content);
