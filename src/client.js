@@ -30,23 +30,15 @@ Promise.all(
       return null;
     }
 
-    let isClone = false;
-    if (file.isJpeg()) {
-      try {
-        const exif = new Exif(file.read().toString('binary'));
-        if (!exif.getDateTime()) {
-          const MODIFIED_PATH = file.path.replace(file.name, `__${file.name}`);
-
-          exif.setDateTime(file.birthTime);
-          file.write(exif.getJpegBinary(), MODIFIED_PATH);
-
-          file.path = MODIFIED_PATH;
-          isClone = true;
-          log.info(`\t\tRewrite dateTime EXIF to ${file.name}`);
-        }
-      } catch (e) {
-        log.err(`Failed to modify exif at ${file.path}\n\terr: ${e}`);
+    // jpeg EXIF 에 timestamp 가 없을 경우,
+    // File birthtime 으로 exif 를 설정한 복사본 이미지를 만듭니다
+    let isCloned = false;
+    try {
+      if (file.isJpeg() && !hasTimestamp(file)) {
+        isCloned = rewriteTimestamp(file);
       }
+    } catch {
+      log.err(`Failed to check exif timestamp while ${file.path}\n\terr: ${e}`);
     }
 
     return send(file, DELETE_AFTER_UPLOAD, request)
@@ -58,7 +50,7 @@ Promise.all(
         log.err(`Failed send file: ${d}, because ${e}`);
         return file;
       })
-      .finally(() => isClone && file.delete());
+      .finally(() => isCloned && file.delete());
   })
 ).then(results => {
   const faileds = results.filter(v => v !== 200);
@@ -81,3 +73,27 @@ Promise.all(
     process.exit(0);
   }
 });
+
+function hasTimestamp(file) {
+  const exif = new Exif(file.read().toString('binary'));
+  return exif.getDateTime() !== undefined;
+}
+
+function rewriteTimestamp(file) {
+  try {
+    const exif = new Exif(file.read().toString('binary'));
+    exif.setDateTime(file.birthTime);
+
+    const MODIFIED_PATH = file.path.replace(file.name, `__${file.name}`);
+    file.write(exif.getJpegBinary(), MODIFIED_PATH);
+    file.path = MODIFIED_PATH;
+
+    log.info(`\t\tRewrite dateTime EXIF to ${file.name}`);
+
+    return true;
+  } catch (e) {
+    log.err(`Failed to modify exif at ${file.path}\n\terr: ${e}`);
+  }
+
+  return false;
+}
