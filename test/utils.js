@@ -84,6 +84,7 @@ function cleanupEnvironment(env) {
 
 function runClient(env) {
   const client = spawn('node', [relativePath('../src/client.js')]);
+  client.stderr.on('data', e => console.log(`Error on Client script: ${e}`));
   if (env.printLog) {
     client.stdout.on('data', d => console.log(`${d}`));
   }
