@@ -53,33 +53,12 @@ http
       }
       const filename = decodeURI(encodedName);
 
-      const data = [];
+      // Stream 으로 body 를 write 한다
+      req.pipe(fs.createWriteStream(path.resolve(UPLOAD, filename)));
 
-      const ws = fs.createWriteStream(path.resolve(UPLOAD, filename));
-      req.pipe(ws);
-
-      // req.on('data', d => data.push(d));
       req.on('end', _ => {
-        log.info(`${filename} - Ready to write.`);
-        // Timeout after 20sec
-        const abortController = new AbortController();
-        let timeoutId = setTimeout(() => {
-          log.err(`Timedout while processing ${filename}`);
-          abortController.abort();
-          res.writeHead(500).end();
-        }, 1000 * 20);
-
-        try {
-          // const buffer = Buffer.concat(data);
-          // save(filename, buffer, abortController.signal);
-          res.writeHead(200).end();
-          log.info(`${filename} - Done! 200`);
-        } catch (e) {
-          log.err('Failed while save file ' + e);
-          res.writeHead(500).end();
-        } finally {
-          clearTimeout(timeoutId);
-        }
+        res.writeHead(200).end();
+        log.info(`${filename} - Done! 200`);
       });
     } catch (e) {
       log.err('Internal server error ' + e);
