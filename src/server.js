@@ -21,8 +21,6 @@ http
       log.info(req.headers);
       log.info(req.method);
 
-      req.on('error', e => log.err(`Got an error on Request: ${e}`));
-
       res.setHeader('Access-Control-Allow-Headers', '*');
       res.setHeader('Access-Control-Allow-Origin', '*');
 
@@ -53,8 +51,15 @@ http
       }
       const filename = decodeURI(encodedName);
 
+      const uploadPath = path.resolve(UPLOAD, filename);
+      req.on('error', e => {
+        log.err(`Got an error on Request: ${e}`);
+        fs.rm(uploadPath);
+        res.writeHead(400).end();
+      });
+
       // Stream 으로 body 를 write 한다
-      req.pipe(fs.createWriteStream(path.resolve(UPLOAD, filename)));
+      req.pipe(fs.createWriteStream(uploadPath));
 
       req.on('end', _ => {
         res.writeHead(200).end();
