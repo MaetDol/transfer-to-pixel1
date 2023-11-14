@@ -21,6 +21,8 @@ http
       log.info(req.headers);
       log.info(req.method);
 
+      req.on('error', e => log.err(`Got an error on Request: ${e}`));
+
       res.setHeader('Access-Control-Allow-Headers', '*');
       res.setHeader('Access-Control-Allow-Origin', '*');
 
