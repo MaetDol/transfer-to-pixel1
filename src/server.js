@@ -54,7 +54,11 @@ http
       const filename = decodeURI(encodedName);
 
       const data = [];
-      req.on('data', d => data.push(d));
+
+      const ws = fs.createWriteStream(path.resolve(UPLOAD, filename));
+      req.pipe(ws);
+
+      // req.on('data', d => data.push(d));
       req.on('end', _ => {
         log.info(`${filename} - Ready to write.`);
         // Timeout after 20sec
@@ -66,8 +70,8 @@ http
         }, 1000 * 20);
 
         try {
-          const buffer = Buffer.concat(data);
-          save(filename, buffer, abortController.signal);
+          // const buffer = Buffer.concat(data);
+          // save(filename, buffer, abortController.signal);
           res.writeHead(200).end();
           log.info(`${filename} - Done! 200`);
         } catch (e) {
