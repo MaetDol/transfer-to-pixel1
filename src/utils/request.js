@@ -15,16 +15,9 @@ async function send(file, doDelete, fetcher) {
     'Content-Length': file.size,
   };
 
-  // 여기서 용량에 따라 분기처리?
-  // 2GiB..
   const _send = () => {
     log.info(`Sending file: ${file.name}`, true);
-    const _1GiB = 1024 * 1024 * 1024 * 1;
-    if (file.size > _1GiB) {
-      return fetcher(headers, file.readAsStream());
-    }
-
-    return fetcher(headers, file.read());
+    return fetcher(headers, file.readAsStream());
   };
 
   return promisePool
@@ -68,21 +61,16 @@ function createRequestFunction(hostname, port) {
         reject(e);
       });
 
-      if (content instanceof ReadStream) {
-        content.on('open', () => {
-          content.pipe(req);
-        });
-        content.on('error', () => {
-          log.err('Error during file streaming' + err);
-          req.end();
-        });
-        content.on('end', () => {
-          req.end();
-        });
-      } else {
-        req.write(content);
+      content.on('open', () => {
+        content.pipe(req);
+      });
+      content.on('error', () => {
+        log.err('Error during file streaming' + err);
+        req.destroy();
+      });
+      content.on('end', () => {
         req.end();
-      }
+      });
     });
   };
 }
