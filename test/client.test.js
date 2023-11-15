@@ -130,3 +130,36 @@ describe('Modify EXIF timestamp', () => {
     });
   });
 });
+
+describe('Stream test', () => {
+  const env = {
+    printLog: false,
+    oldFiles: [],
+    newFiles: [],
+  };
+
+  beforeAll(() => initEnvironment(env), 20 * 1000);
+  afterAll(() => cleanupEnvironment(env));
+
+  test(
+    'me!',
+    done => {
+      // Given
+      const head = fs.openSync(relativePath('./__origin/test.mp4'), 'w');
+      // NodeJS 에서 2GiB 를 넘기면 에러가 나기때문에 그것보다 큰 용량으로 설정
+      const WRITE_CURSOR_POSITION = 1024 * 1024 * 1024 * 3; // 3GiB
+      fs.writeSync(head, '_', WRITE_CURSOR_POSITION - 1); // _ 문자 때문에 1byte 앞으로 지정
+      fs.closeSync(head);
+
+      // When
+      runClient(env).on('close', () => {
+        const file = new File(relativePath('./__received/test.mp4'));
+
+        // Then
+        expect(file.size).toBe(WRITE_CURSOR_POSITION);
+        done();
+      });
+    },
+    60 * 1000 * 5 // 타임아웃 5분
+  );
+});

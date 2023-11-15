@@ -73,6 +73,9 @@ async function initEnvironment(env) {
   }
 
   env.server = spawn('node', [relativePath('../src/server.js')]);
+  env.server.stderr.on('data', e =>
+    console.log(`Error on Server script: ${e}`)
+  );
   await delay(2000);
 }
 
@@ -84,6 +87,7 @@ function cleanupEnvironment(env) {
 
 function runClient(env) {
   const client = spawn('node', [relativePath('../src/client.js')]);
+  client.stderr.on('data', e => console.log(`Error on Client script: ${e}`));
   if (env.printLog) {
     client.stdout.on('data', d => console.log(`${d}`));
   }

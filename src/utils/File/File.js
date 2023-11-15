@@ -36,6 +36,10 @@ class File {
     return fs.readFileSync(this.path);
   }
 
+  readAsStream() {
+    return fs.createReadStream(this.path);
+  }
+
   write(data, as = this.path) {
     fs.writeFileSync(as, data);
   }

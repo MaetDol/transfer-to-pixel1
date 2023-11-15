@@ -51,29 +51,19 @@ http
       }
       const filename = decodeURI(encodedName);
 
-      const data = [];
-      req.on('data', d => data.push(d));
-      req.on('end', _ => {
-        log.info(`${filename} - Ready to write.`);
-        // Timeout after 20sec
-        const abortController = new AbortController();
-        let timeoutId = setTimeout(() => {
-          log.err(`Timedout while processing ${filename}`);
-          abortController.abort();
-          res.writeHead(500).end();
-        }, 1000 * 20);
+      const uploadPath = path.resolve(UPLOAD, filename);
+      req.on('error', e => {
+        log.err(`Got an error on Request: ${e}`);
+        fs.rm(uploadPath);
+        res.writeHead(400).end();
+      });
 
-        try {
-          const buffer = Buffer.concat(data);
-          save(filename, buffer, abortController.signal);
-          res.writeHead(200).end();
-          log.info(`${filename} - Done! 200`);
-        } catch (e) {
-          log.err('Failed while save file ' + e);
-          res.writeHead(500).end();
-        } finally {
-          clearTimeout(timeoutId);
-        }
+      // Stream 으로 body 를 write 한다
+      req.pipe(fs.createWriteStream(uploadPath));
+
+      req.on('end', _ => {
+        res.writeHead(200).end();
+        log.info(`${filename} - Done! 200`);
       });
     } catch (e) {
       log.err('Internal server error ' + e);
@@ -84,10 +74,3 @@ http
     log.info('Server is Running');
     log.info(new Date());
   });
-
-function save(name, file, abortSignal) {
-  fs.appendFileSync(path.resolve(UPLOAD, name), file, {
-    flag: 'w',
-    signal: abortSignal,
-  });
-}

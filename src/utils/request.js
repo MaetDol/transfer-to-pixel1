@@ -1,8 +1,9 @@
 const PromisePool = require('./PromisePool.js');
 const http = require('http');
 const log = require('./logger.js');
+const { ReadStream } = require('fs');
 
-const TIMEOUT_MS = 100 * 1000;
+const TIMEOUT_MS = 1000 * 60 * 5;
 const MAX_POOL_SIZE_BYTE = 300 * 1024 * 1024;
 
 const promisePool = new PromisePool(MAX_POOL_SIZE_BYTE);
@@ -16,7 +17,7 @@ async function send(file, doDelete, fetcher) {
 
   const _send = () => {
     log.info(`Sending file: ${file.name}`, true);
-    return fetcher(headers, file.read());
+    return fetcher(headers, file.readAsStream());
   };
 
   return promisePool
@@ -45,6 +46,7 @@ function createRequestFunction(hostname, port) {
           method: 'POST',
         },
         res => {
+          res.on('error', e => log.err(`Response error? ${e}`));
           res.on('data', _ => 0);
           res.on('end', _ => {
             if (res.statusCode !== 200) reject(res.statusCode);
@@ -59,8 +61,16 @@ function createRequestFunction(hostname, port) {
         reject(e);
       });
 
-      req.write(content);
-      req.end();
+      content.on('open', () => {
+        content.pipe(req);
+      });
+      content.on('error', () => {
+        log.err('Error during file streaming' + err);
+        req.destroy();
+      });
+      content.on('end', () => {
+        req.end();
+      });
     });
   };
 }
