@@ -73,6 +73,9 @@ async function initEnvironment(env) {
   }
 
   env.server = spawn('node', [relativePath('../src/server.js')]);
+  env.server.stderr.on('data', e =>
+    console.log(`Error on Server script: ${e}`)
+  );
   await delay(2000);
 }
 
