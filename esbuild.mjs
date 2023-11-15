@@ -16,13 +16,24 @@ const copyPropsFile = {
   },
 };
 
-const ctx = await esbuild.context({
-  entryPoints: ['./src/client.js', './src/server.js'],
-  bundle: true,
-  platform: 'node',
-  outdir: './dist',
-  plugins: [copyPropsFile],
-});
+build();
+async function build() {
+  const shouldWatch = process.argv.some(arg => arg === '--watch');
 
-await ctx.watch();
-console.log('Esbuild watching now..');
+  const ctx = await esbuild.context({
+    entryPoints: ['./src/client.js', './src/server.js'],
+    bundle: true,
+    platform: 'node',
+    outdir: './dist',
+    plugins: [copyPropsFile],
+  });
+
+  if (shouldWatch) {
+    await ctx.watch();
+    console.log('Esbuild watching now..');
+    return;
+  }
+
+  await ctx.rebuild();
+  await ctx.dispose();
+}
