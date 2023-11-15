@@ -18,6 +18,8 @@ function delay(time) {
 }
 
 function setProp(newProp) {
+  // production 이 아닌 test 코드에서, production 기능을 import 한다면,
+  // 어떻게 처리해야할까? test 코드도 같이 빌드해버려..?
   const prop = new Properties(relativePath('../properties.json'));
 
   prop.write({
@@ -72,7 +74,7 @@ async function initEnvironment(env) {
     env.newFiles.forEach(f => createFile(env.src, f));
   }
 
-  env.server = spawn('node', [relativePath('../src/server.js')]);
+  env.server = spawn('node', [relativePath('../dist/server.js')]);
   env.server.stderr.on('data', e =>
     console.log(`Error on Server script: ${e}`)
   );
@@ -86,7 +88,7 @@ function cleanupEnvironment(env) {
 }
 
 function runClient(env) {
-  const client = spawn('node', [relativePath('../src/client.js')]);
+  const client = spawn('node', [relativePath('../dist/client.js')]);
   client.stderr.on('data', e => console.log(`Error on Client script: ${e}`));
   if (env.printLog) {
     client.stdout.on('data', d => console.log(`${d}`));
