@@ -37,7 +37,7 @@ Promise.all(
       if (file.isJpeg() && !hasTimestamp(file)) {
         isCloned = rewriteTimestamp(file);
       }
-    } catch {
+    } catch (e) {
       log.err(`Failed to check exif timestamp while ${file.path}\n\terr: ${e}`);
     }
 
