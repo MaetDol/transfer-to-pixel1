@@ -74,10 +74,3 @@ http
     log.info('Server is Running');
     log.info(new Date());
   });
-
-function save(name, file, abortSignal) {
-  fs.appendFileSync(path.resolve(UPLOAD, name), file, {
-    flag: 'w',
-    signal: abortSignal,
-  });
-}
