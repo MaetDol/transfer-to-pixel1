@@ -18,9 +18,9 @@ function delay(time) {
 }
 
 function setProp(newProp) {
-  // production 이 아닌 test 코드에서, production 기능을 import 한다면,
+  // production 이 아닌 test 코드에서 production 기능을 import 한다면,
   // 어떻게 처리해야할까? test 코드도 같이 빌드해버려..?
-  const prop = new Properties(relativePath('../properties.json'));
+  const prop = new Properties(relativePath('../dist/properties.json'));
 
   prop.write({
     ...prop.value,
