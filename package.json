@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npm run build && npx jest",
+    "test": "npx dotenv -e .env.test -- npx jest",
     "build": "node esbuild.mjs",
     "watch": "node esbuild.mjs --watch"
   },
