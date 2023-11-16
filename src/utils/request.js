@@ -64,7 +64,7 @@ function createRequestFunction(hostname, port) {
       content.on('open', () => {
         content.pipe(req);
       });
-      content.on('error', () => {
+      content.on('error', err => {
         log.err('Error during file streaming' + err);
         req.destroy();
       });
