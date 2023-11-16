@@ -1,14 +1,16 @@
 import 'dotenv/config';
 import * as esbuild from 'esbuild';
-import { copyFile } from 'node:fs/promises';
+import { copyFile, mkdir } from 'node:fs/promises';
 
 /** @type {import('esbuild').Plugin} */
 const copyPropsFile = {
   name: 'Copy properties.json',
   setup(build) {
     const PROPS_FILE_NAME = 'properties.json';
-    build.onStart(() => {
+    build.onStart(async () => {
       if (!build.initialOptions.outdir) return;
+
+      await mkdir(build.initialOptions.outdir, { recursive: true });
       copyFile(
         `./${PROPS_FILE_NAME}`,
         `${build.initialOptions.outdir}/${PROPS_FILE_NAME}`
