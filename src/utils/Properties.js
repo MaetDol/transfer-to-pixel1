@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config();
 
 const PROPS_PATH = path.resolve(
   __dirname,
