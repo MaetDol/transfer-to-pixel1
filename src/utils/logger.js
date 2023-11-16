@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+const Properties = require('./Properties');
 
-const { LOG_DIR, LOGGING, ROOT } = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, '../../properties.json'), 'UTF-8')
-);
+const { LOG_DIR, LOGGING, ROOT } = new Properties().value;
+
 const BASE = path.join(ROOT, LOG_DIR);
 
 module.exports = {

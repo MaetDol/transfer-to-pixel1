@@ -72,7 +72,10 @@ async function initEnvironment(env) {
     env.newFiles.forEach(f => createFile(env.src, f));
   }
 
-  env.server = spawn('node', [relativePath('../src/server.js')]);
+  env.server = spawn('node', [
+    relativePath('../src/server.js'),
+    '-r dotenv/config dotenv_config_path=.env.test',
+  ]);
   env.server.stderr.on('data', e =>
     console.log(`Error on Server script: ${e}`)
   );
@@ -86,7 +89,10 @@ function cleanupEnvironment(env) {
 }
 
 function runClient(env) {
-  const client = spawn('node', [relativePath('../src/client.js')]);
+  const client = spawn('node', [
+    relativePath('../src/client.js'),
+    '-r dotenv/config dotenv_config_path=.env.test',
+  ]);
   client.stderr.on('data', e => console.log(`Error on Client script: ${e}`));
   if (env.printLog) {
     client.stdout.on('data', d => console.log(`${d}`));

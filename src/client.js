@@ -6,7 +6,7 @@ const { File, Ignores, getNewFiles, Exif } = require('./utils/File');
 const { send, createRequestFunction } = require('./utils/request.js');
 
 log.info(new Date());
-const prop = new Properties(path.resolve(__dirname, '../properties.json'));
+const prop = new Properties();
 const {
   LAST_UPDATE,
   ROOT,

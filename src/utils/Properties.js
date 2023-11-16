@@ -1,7 +1,13 @@
 const fs = require('fs');
+const path = require('path');
+
+const PROPS_PATH = path.resolve(
+  __dirname,
+  process.env.TTP_APP_PROPERTIES_FILE_PATH
+);
 
 class Properties {
-  constructor(path) {
+  constructor(path = PROPS_PATH) {
     this.path = path;
     this.read();
   }
