@@ -1,5 +1,8 @@
 const fs = require('fs');
-const PROPS_PATH = './properties.json';
+const path = require('path');
+require('dotenv').config();
+
+const PROPS_PATH = path.resolve(__dirname, process.env.PROPERTIES_FILE_PATH);
 
 class Properties {
   constructor(path = PROPS_PATH) {
