@@ -2,7 +2,10 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-const PROPS_PATH = path.resolve(__dirname, process.env.PROPERTIES_FILE_PATH);
+const PROPS_PATH = path.resolve(
+  __dirname,
+  process.env.TTP_APP_PROPERTIES_FILE_PATH
+);
 
 class Properties {
   constructor(path = PROPS_PATH) {
