@@ -1,16 +1,12 @@
 import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as log from './utils/logger';
+// @ts-ignore
+import { Exif, File, Ignores, getNewFiles } from './utils/File';
+// @ts-ignore
 import Properties from './utils/Properties';
-import { File, Ignores, getNewFiles, Exif } from './utils/File';
-import { send, createRequestFunction } from './utils/request';
-
-// const fs = require('fs');
-// const path = require('path');
-// const log = require('./utils/logger.js');
-// const Properties = require('./utils/Properties.js');
-// const { File, Ignores, getNewFiles, Exif } = require('./utils/File');
-// const { send, createRequestFunction } = require('./utils/request.js');
+// @ts-ignore
+import * as log from './utils/logger';
+// @ts-ignore
+import { createRequestFunction, send } from './utils/request';
 
 log.info(new Date());
 const prop = new Properties();
@@ -27,8 +23,8 @@ const {
 const request = createRequestFunction(SERVER, PORT);
 const ignores = new Ignores(ignorePaths, ROOT);
 
-Promise.all(
-  getNewFiles(ROOT, targets, ignores, LAST_UPDATE).map(async d => {
+export const mainPromise = Promise.all(
+  getNewFiles(ROOT, targets, ignores, LAST_UPDATE).map(async (d: string) => {
     await 0;
 
     const file = new File(d);
@@ -49,23 +45,23 @@ Promise.all(
     }
 
     return send(file, DELETE_AFTER_UPLOAD, request)
-      .then(result => {
+      .then((result: number) => {
         log.info(`Upload is done "${d}"`, true);
         return result;
       })
-      .catch(e => {
+      .catch((e: unknown) => {
         log.err(`Failed send file: ${d}, because ${e}`);
         return file;
       })
       .finally(() => isCloned && file.delete());
   })
 ).then(results => {
-  const faileds = results.filter(v => v !== 200);
+  const faileds = results.filter((v: number | File) => v !== 200);
   log.info(`Tried ${results.length} files, failed ${faileds.length} files.`);
 
   faileds
-    .filter(v => v !== null)
-    .map(({ path, mode }) => {
+    .filter((v: number | File) => v !== null)
+    .map(({ path, mode }: File) => {
       fs.chmodSync(path, mode);
     });
 
@@ -81,12 +77,12 @@ Promise.all(
   }
 });
 
-function hasTimestamp(file) {
+function hasTimestamp(file: File) {
   const exif = new Exif(file.read().toString('binary'));
   return exif.getDateTime() !== undefined;
 }
 
-function rewriteTimestamp(file) {
+function rewriteTimestamp(file: File) {
   try {
     const exif = new Exif(file.read().toString('binary'));
     exif.setDateTime(file.birthTime);
