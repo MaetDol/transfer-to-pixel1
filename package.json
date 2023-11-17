@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/maetdol/transfer-to-pixel1#readme",
   "devDependencies": {
-    "@types/jest": "^29.5.8",
+    "@jest/globals": "^29.7.0",
     "dotenv": "^16.3.1",
     "dotenv-cli": "^7.3.0",
     "esbuild": "^0.19.5",
