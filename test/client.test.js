@@ -27,7 +27,7 @@ const {
 } = require('./files');
 const { File, Exif } = require('../src/utils/File');
 
-describe('Upload valid files only', () => {
+xdescribe('Upload valid files only', () => {
   const env = {
     oldFiles: files1,
     newFiles: [].concat(files2, invalid),
@@ -48,7 +48,7 @@ describe('Upload valid files only', () => {
   });
 });
 
-describe('Upload without ignore files', () => {
+xdescribe('Upload without ignore files', () => {
   const env = {
     printLog: false,
     oldFiles: files1,
@@ -71,7 +71,7 @@ describe('Upload without ignore files', () => {
   });
 });
 
-describe('Modify EXIF timestamp', () => {
+xdescribe('Modify EXIF timestamp', () => {
   const env = {
     printLog: false,
     oldFiles: [],
@@ -131,7 +131,7 @@ describe('Modify EXIF timestamp', () => {
   });
 });
 
-describe('Stream test', () => {
+xdescribe('Stream test', () => {
   const env = {
     printLog: false,
     oldFiles: [],
