@@ -89,15 +89,18 @@ function cleanupEnvironment(env) {
 }
 
 function runClient(env) {
-  const client = spawn('node', [
-    relativePath('../src/client.js'),
-    '-r dotenv/config dotenv_config_path=.env.test',
-  ]);
-  client.stderr.on('data', e => console.log(`Error on Client script: ${e}`));
-  if (env.printLog) {
-    client.stdout.on('data', d => console.log(`${d}`));
-  }
-  return client;
+  const originExitFunction = process.exit;
+  const exitPromise = new Promise(resolver => (process.exit = resolver));
+
+  const mainPromise = import('../src/client.ts');
+  mainPromise.catch(e => console.log(`Error: ${e}`));
+
+  return {
+    on: (_, cb) =>
+      Promise.all([mainPromise, exitPromise])
+        .then(() => (process.exit = originExitFunction))
+        .then(cb),
+  };
 }
 
 function uploadedFiles(env) {
