@@ -1,9 +1,16 @@
-const fs = require('fs');
-const path = require('path');
-const log = require('./utils/logger.js');
-const Properties = require('./utils/Properties.js');
-const { File, Ignores, getNewFiles, Exif } = require('./utils/File');
-const { send, createRequestFunction } = require('./utils/request.js');
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as log from './utils/logger';
+import Properties from './utils/Properties';
+import { File, Ignores, getNewFiles, Exif } from './utils/File';
+import { send, createRequestFunction } from './utils/request';
+
+// const fs = require('fs');
+// const path = require('path');
+// const log = require('./utils/logger.js');
+// const Properties = require('./utils/Properties.js');
+// const { File, Ignores, getNewFiles, Exif } = require('./utils/File');
+// const { send, createRequestFunction } = require('./utils/request.js');
 
 log.info(new Date());
 const prop = new Properties();
