@@ -1,14 +1,14 @@
 import {
-  afterAll,
-  beforeAll,
+  afterEach,
+  beforeEach,
   describe,
   expect,
   it,
   jest,
-  xdescribe,
 } from '@jest/globals';
 import fs from 'fs';
 import { sep } from 'path';
+import { runClient } from '../src/client';
 import { PropertiesJson } from '../src/utils/Properties';
 // @ts-ignore
 import { send } from '../src/utils/request';
@@ -26,7 +26,7 @@ jest.mock('../src/utils/request');
 jest.mock('../src/utils/File/Exif');
 
 describe('Upload', () => {
-  afterAll(() => {
+  afterEach(() => {
     jest.resetAllMocks();
   });
 
@@ -81,7 +81,7 @@ describe('Upload', () => {
       });
 
     // When
-    await import('../src/client');
+    await runClient();
 
     // Then
     const uploadedFiles = send.mock.calls.map(
