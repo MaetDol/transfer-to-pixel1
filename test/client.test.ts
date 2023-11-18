@@ -65,7 +65,7 @@ describe('Upload', () => {
 
     // Given
     const oldFiles: FileSystemMock[] = ['old.jpg', 'old.mp4', 'old.png']
-      .map(name => createFileMock(name))
+      .map(name => createFileMock({ name }))
       .map(file => {
         // 파일 생성 시점을 5분 전으로 설정
         file.stat.ctime = new Date(LAST_UPDATE.getTime() - 5 * 60 * 1000);
@@ -73,7 +73,7 @@ describe('Upload', () => {
       });
 
     const newFiles: FileSystemMock[] = ['img.jpg', 'img2.jpeg', 'vdo.jpg']
-      .map(name => createFileMock(name))
+      .map(name => createFileMock({ name }))
       .map(file => {
         // 파일 생성 시점을 검사 기준 1분 후로 설정
         file.stat.ctime = new Date(LAST_UPDATE.getTime() + 1 * 60 * 1000);
@@ -139,14 +139,14 @@ describe('Ignore', () => {
 
     // Given
     const targets: FileSystemMock[] = ['img.jpg', 'img2.jpeg', 'vdo.jpg'].map(
-      name => createFileMock(name)
+      name => createFileMock({ name })
     );
 
     const execpts: FileSystemMock[] = [
       'not-me.jpg',
       'nah.mp4',
       'never.png',
-    ].map(name => createFileMock(name));
+    ].map(name => createFileMock({ name }));
 
     // When
     await runClient();
@@ -294,10 +294,15 @@ type DirectoryMock = {
   };
 };
 type FileSystemMock = FileMock | DirectoryMock;
-const createFileMock = (
-  name: string,
-  parentDirectory?: DirectoryMock
-): FileMock => {
+const createFileMock = ({
+  name,
+  parentDirectory,
+  stat = {},
+}: {
+  name: string;
+  parentDirectory?: DirectoryMock;
+  stat?: Partial<FileMock['stat']>;
+}): FileMock => {
   const file: FileMock = {
     name: name,
     stat: {
@@ -307,6 +312,8 @@ const createFileMock = (
       atime: new Date(),
       mtime: new Date(),
       ctime: new Date(),
+      ...stat,
+
       isDirectory: () => false,
     },
   };
@@ -321,10 +328,12 @@ const createDirectoryMock = ({
   name,
   parentDirectory,
   childs = [],
+  stat = {},
 }: {
   name: string;
   parentDirectory?: DirectoryMock;
   childs?: FileSystemMock[];
+  stat?: Partial<DirectoryMock['stat']>;
 }): DirectoryMock => {
   const dir: DirectoryMock = {
     name: name,
@@ -336,6 +345,8 @@ const createDirectoryMock = ({
       atime: new Date(),
       mtime: new Date(),
       ctime: new Date(),
+      ...stat,
+
       isDirectory: () => true,
     },
   };
