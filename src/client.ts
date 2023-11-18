@@ -1,4 +1,4 @@
-import * as fs from 'node:fs';
+import fs from 'fs';
 // @ts-ignore
 import { Exif, File, Ignores, getNewFiles } from './utils/File';
 // @ts-ignore
