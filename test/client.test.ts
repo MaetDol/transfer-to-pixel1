@@ -4,6 +4,8 @@ import { sep } from 'path';
 import { PropertiesJson } from '../src/utils/Properties';
 // @ts-ignore
 import { send } from '../src/utils/request';
+// @ts-ignore
+import { File } from '../src/utils/File';
 
 jest.mock('fs');
 jest.mock('http');
@@ -13,6 +15,7 @@ jest.mock('../src/utils/logger', () => ({
   err: console.warn,
 }));
 jest.mock('../src/utils/request');
+jest.mock('../src/utils/File/Exif');
 
 describe('Upload', () => {
   it(
@@ -102,12 +105,19 @@ describe('Upload', () => {
 
       const LAST_UPDATE = new Date();
 
+      const mockedSend = jest.mocked(send);
+      mockedSend.mockImplementation(() => Promise.resolve(200));
+
+      jest
+        .spyOn(process, 'exit')
+        .mockImplementation((() => {}) as typeof process.exit);
+
       // Given
       const oldFiles: FileSystemMock[] = ['old.jpg', 'old.mp4', 'old.png']
         .map(name => createFileMock(name))
         .map(file => {
           // 파일 생성 시점을 5분 전으로 설정
-          file.stat.birthtime = new Date(LAST_UPDATE.getTime() - 1000 * 60 * 5);
+          file.stat.ctime = new Date(LAST_UPDATE.getTime() - 1000 * 60 * 5);
           return file;
         });
       const newFiles: FileSystemMock[] = [
@@ -138,7 +148,10 @@ describe('Upload', () => {
 
       // Then
       expect(true).toBeTruthy();
-      console.log(send.mock.calls);
+      console.log(
+        `Mock calls: `,
+        send.mock.calls.map(([file]: [File, boolean, unknown]) => file.name)
+      );
     },
     10 * 1000
   );
