@@ -160,6 +160,136 @@ describe('Ignore', () => {
   });
 });
 
+function parseFileSystemString(structure: string) {
+  const OBJECT_INDICATOR = '├─';
+  const DEPTH_INDICATOR = '│  ';
+  const ATTRIBUTE_INDICATOR = '::';
+
+  const lines = structure
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length)
+    .filter(line => !line.endsWith(DEPTH_INDICATOR.trim()))
+    .filter(line => !line.endsWith(OBJECT_INDICATOR));
+
+  const root = createDirectoryMock({
+    name: '',
+  });
+
+  let directories: DirectoryMock[] = [root];
+  let prevInfo: {
+    filename: string;
+    attributes: { [name: string]: unknown };
+    isAbsolutlyDirectory: true | null;
+  } | null = null;
+
+  for (const line of lines) {
+    const [filename, attributesRaw, isAbsolutlyDirectory] =
+      getNameAndAttributesFrom(line);
+    const attributes = parseAttributes(attributesRaw);
+    const fileInfo = {
+      filename,
+      attributes,
+      isAbsolutlyDirectory,
+    };
+
+    if (!prevInfo) {
+      prevInfo = fileInfo;
+      continue;
+    }
+
+    const previousDepth = directories.length - 1;
+    // 폴더 뎁스가 늘어났을때
+    if (previousDepth < calculateDepthOf(line)) {
+      const dir = createDirectoryMock({
+        name: prevInfo.filename,
+        childs: [],
+        parentDirectory: directories.at(-1),
+        stat: prevInfo.attributes,
+      });
+      directories.push(dir);
+      prevInfo = fileInfo;
+      continue;
+    }
+
+    // 폴더 뎁스가 줄어들었을때 or 유지되었을때
+    if (prevInfo.isAbsolutlyDirectory) {
+      createDirectoryMock({
+        name: prevInfo.filename,
+        parentDirectory: directories.at(-1),
+        stat: prevInfo.attributes,
+      });
+    } else {
+      createFileMock({
+        name: prevInfo.filename,
+        parentDirectory: directories.at(-1),
+        stat: prevInfo.attributes,
+      });
+    }
+
+    const targetDepth = previousDepth - calculateDepthOf(line);
+    for (let i = 0; i < targetDepth; i++) {
+      directories.pop();
+    }
+    prevInfo = fileInfo;
+  }
+
+  if (!prevInfo) throw 'There is nothing to create file-system';
+  createFileMock({
+    name: prevInfo.filename,
+    parentDirectory: directories.at(-1),
+    stat: prevInfo.attributes,
+  });
+
+  return directories[0];
+
+  function getNameAndAttributesFrom(
+    line: string
+  ): [string, string, true | null] {
+    const [fileName, attrRaw = ''] = line
+      .replace(new RegExp(OBJECT_INDICATOR, 'g'), '')
+      .replace(new RegExp(DEPTH_INDICATOR, 'g'), '')
+      .trim()
+      .split(new RegExp(`\\s*${ATTRIBUTE_INDICATOR}\\s*`));
+
+    // true 라면 폴더가 확실하나, 아닐경우 파일 또는 폴더가 될 수 있음
+    const isAbsolutlyDirectory = fileName.endsWith('/') || null;
+    return [fileName.replace(/\/$/, ''), attrRaw, isAbsolutlyDirectory];
+  }
+
+  function parseAttributes(attributesRaw: string) {
+    return attributesRaw
+      .split(/\)\s*\(/)
+      .map(attrRaw => attrRaw.trim())
+      .map(attrRaw => attrRaw.replace(/^\(\s*|\s*\)$/g, ''))
+      .reduce((attrs: { [name: string]: unknown }, attrRaw) => {
+        if (!attrRaw.length) return attrs;
+
+        const separatorIdx = attrRaw.indexOf(':');
+        const attrName = attrRaw.slice(0, separatorIdx).trim();
+        const value = attrRaw.slice(separatorIdx + 1).trim();
+
+        if (/^\d+$/.test(value)) {
+          attrs[attrName] = Number(value);
+        } else if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          attrs[attrName] = new Date(value);
+        } else {
+          attrs[attrName] = value;
+        }
+
+        return attrs;
+      }, {});
+  }
+
+  function calculateDepthOf(line: string) {
+    const depthIndicatorNumber =
+      line.match(new RegExp(DEPTH_INDICATOR, 'g'))?.length ?? 0;
+    const objectIndicatorNumber =
+      line.match(new RegExp(OBJECT_INDICATOR, 'g'))?.length ?? 0;
+    return depthIndicatorNumber + objectIndicatorNumber;
+  }
+}
+
 function mockStatSync(getFileTree: () => FileSystemMock) {
   return ((path: string): fs.Stats => {
     return {
@@ -364,4 +494,21 @@ const createDirectoryMock = ({
 
 function isDirectory(f: FileSystemMock): f is DirectoryMock {
   return f.stat.isDirectory();
+}
+
+function printFileStructure(file: FileSystemMock, depth = 0) {
+  let result =
+    (depth <= 1
+      ? file.name
+      : depth === 2
+      ? '├─' + file.name
+      : '│  '.repeat(depth - 2) + '├─' + file.name) + '\n';
+
+  if (isDirectory(file)) {
+    Object.values(file.files).forEach(
+      f => (result += printFileStructure(f, depth + 1))
+    );
+  }
+
+  return result;
 }
