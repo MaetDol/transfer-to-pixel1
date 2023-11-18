@@ -1,4 +1,12 @@
-import { afterAll, describe, expect, it, jest } from '@jest/globals';
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  jest,
+  xdescribe,
+} from '@jest/globals';
 import fs from 'fs';
 import { sep } from 'path';
 import { PropertiesJson } from '../src/utils/Properties';
@@ -30,7 +38,11 @@ describe('Upload', () => {
     mockedFs.statSync.mockImplementation(mockStatSync(getFileTree));
     mockedFs.readdirSync.mockImplementation(mockReaddirSync(getFileTree));
     mockedFs.readFileSync.mockImplementation(
-      mockReadFileSyncForPropsJson(LAST_UPDATE)
+      mockReadFileSyncForPropsJson({
+        ROOT: 'ROOT',
+        targets: ['/target'],
+        LAST_UPDATE: LAST_UPDATE.toISOString(),
+      })
     );
 
     jest.mocked(send).mockImplementation(() => Promise.resolve(200));
@@ -126,7 +138,7 @@ function mockReaddirSync(getFileTree: () => FileSystemMock) {
   }) as typeof fs.readdirSync;
 }
 
-function mockReadFileSyncForPropsJson(LAST_UPDATE: Date) {
+function mockReadFileSyncForPropsJson(customProps: Partial<PropertiesJson>) {
   return ((path: string): string | Buffer => {
     const PROPS_JSON_PATH = process.env.TTP_APP_PROPERTIES_FILE_PATH;
     if (!PROPS_JSON_PATH) {
@@ -138,11 +150,7 @@ function mockReadFileSyncForPropsJson(LAST_UPDATE: Date) {
     );
 
     if (path.endsWith(PROPS_JSON_FILENAME)) {
-      return createClientPropertiesJson({
-        ROOT: 'ROOT',
-        targets: ['/target'],
-        LAST_UPDATE: LAST_UPDATE.toISOString(),
-      });
+      return createClientPropertiesJson(customProps);
     }
 
     return Buffer.from(path);
