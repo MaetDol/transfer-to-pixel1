@@ -25,6 +25,8 @@ jest.mock('../src/utils/logger', () => ({
 jest.mock('../src/utils/request');
 jest.mock('../src/utils/File/Exif');
 
+beforeEach(() => console.log('.\n.\n.\n.\n.\n'));
+
 describe('Upload', () => {
   afterEach(() => {
     jest.resetAllMocks();
@@ -52,33 +54,26 @@ describe('Upload', () => {
       .mockImplementation((() => {}) as typeof process.exit);
 
     function getFileTree(): FileSystemMock {
-      return createDirectoryMock({
-        name: 'ROOT',
-        childs: [
-          createDirectoryMock({
-            name: 'target',
-            childs: [...oldFiles, ...newFiles],
-          }),
-        ],
-      });
+      const adjustTime = (ms: number) =>
+        new Date(LAST_UPDATE.getTime() + ms).toISOString();
+      const _5min_ago = adjustTime(-5 * 60 * 1000);
+      const _1min_after = adjustTime(1 * 60 * 1000);
+
+      // Given
+      const files = parseFileSystemString(`
+       ROOT/
+        ├─ target
+        │  ├─ old.jpg :: (ctime: ${_5min_ago})
+        │  ├─ old.mp4 :: (ctime: ${_5min_ago})
+        │  ├─ old.png :: (ctime: ${_5min_ago})
+        │  │
+        │  ├─ img.jpg   :: (ctime: ${_1min_after})
+        │  ├─ img2.jpeg :: (ctime: ${_1min_after})
+        │  ├─ vdo.mp4   :: (ctime: ${_1min_after})
+      `);
+
+      return files.files['ROOT'];
     }
-
-    // Given
-    const oldFiles: FileSystemMock[] = ['old.jpg', 'old.mp4', 'old.png']
-      .map(name => createFileMock({ name }))
-      .map(file => {
-        // 파일 생성 시점을 5분 전으로 설정
-        file.stat.ctime = new Date(LAST_UPDATE.getTime() - 5 * 60 * 1000);
-        return file;
-      });
-
-    const newFiles: FileSystemMock[] = ['img.jpg', 'img2.jpeg', 'vdo.jpg']
-      .map(name => createFileMock({ name }))
-      .map(file => {
-        // 파일 생성 시점을 검사 기준 1분 후로 설정
-        file.stat.ctime = new Date(LAST_UPDATE.getTime() + 1 * 60 * 1000);
-        return file;
-      });
 
     // When
     await runClient();
@@ -87,7 +82,7 @@ describe('Upload', () => {
     const uploadedFiles = send.mock.calls.map(
       ([file]: [File, boolean, unknown]) => file.name
     );
-    const newFileNames = newFiles.map(({ name }) => name);
+    const newFileNames = ['img.jpg', 'img2.jpeg', 'vdo.mp4'];
     expect(uploadedFiles.sort()).toEqual(newFileNames.sort());
   });
 });
@@ -120,33 +115,22 @@ describe('Ignore', () => {
     );
 
     function getFileTree(): FileSystemMock {
-      return createDirectoryMock({
-        name: 'ROOT',
-        childs: [
-          createDirectoryMock({
-            name: 'target',
-            childs: [
-              ...targets,
-              createDirectoryMock({
-                name: 'ignore-me',
-                childs: execpts,
-              }),
-            ],
-          }),
-        ],
-      });
+      // Given
+      const files = parseFileSystemString(`
+        ROOT/
+        ├─ target/
+        │  ├─ img.jpg
+        │  ├─ img2.jpeg
+        │  ├─ vdo.jpg
+        │  │
+        │  ├─ ignore-me/
+        │  │  ├─ not-me.jpg
+        │  │  ├─ nah.mp4
+        │  │  ├─ never.png
+      `);
+
+      return files.files['ROOT'];
     }
-
-    // Given
-    const targets: FileSystemMock[] = ['img.jpg', 'img2.jpeg', 'vdo.jpg'].map(
-      name => createFileMock({ name })
-    );
-
-    const execpts: FileSystemMock[] = [
-      'not-me.jpg',
-      'nah.mp4',
-      'never.png',
-    ].map(name => createFileMock({ name }));
 
     // When
     await runClient();
@@ -155,12 +139,32 @@ describe('Ignore', () => {
     const uploadedFiles = send.mock.calls.map(
       ([file]: [File, boolean, unknown]) => file.name
     );
-    const targetNames = targets.map(({ name }) => name);
+    const targetNames = ['img.jpg', 'img2.jpeg', 'vdo.jpg'];
     expect(uploadedFiles.sort()).toEqual(targetNames.sort());
   });
 });
 
 function parseFileSystemString(structure: string) {
+  /**
+ *  사용 예:
+ *   ROOT/
+      ├─ img.jpg
+      ├─ img1.jpg
+      ├─ vdo.mp3 :: (ctime: ${new Date().toISOString()})
+      │
+      ├─ subdir/
+      │  ├─ also.jpg
+      │  ├─ skip.mp3
+      │  │
+      │  ├─ ignoreMe/
+      │  │  ├─ ignore.jpg
+      │  │  ├─ skip.mp3
+      │  │  ├─ not-me.raw
+      │
+      ├─ empty/
+      │
+      Others/
+ */
   const OBJECT_INDICATOR = '├─';
   const DEPTH_INDICATOR = '│  ';
   const ATTRIBUTE_INDICATOR = '::';
@@ -498,11 +502,11 @@ function isDirectory(f: FileSystemMock): f is DirectoryMock {
 
 function printFileStructure(file: FileSystemMock, depth = 0) {
   let result =
-    (depth <= 1
+    (depth === 0
       ? file.name
-      : depth === 2
+      : depth === 1
       ? '├─' + file.name
-      : '│  '.repeat(depth - 2) + '├─' + file.name) + '\n';
+      : '│  '.repeat(depth - 1) + '├─' + file.name) + '\n';
 
   if (isDirectory(file)) {
     Object.values(file.files).forEach(
