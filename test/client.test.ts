@@ -17,6 +17,7 @@ describe('Upload', () => {
   it(
     'Upload media files that were updated after LAST_UPDATE',
     async () => {
+      console.log('---------------------------------------------');
       // Mocking..
 
       // fs
@@ -32,73 +33,71 @@ describe('Upload', () => {
       // DONE: Properties
       // DONE: log
       // createRequestFunction, send
-      jest.mock('fs', () => ({
-        statSync: jest.fn((path: string): fs.Stats => {
-          return {
-            // atime: new Date(),
-            atimeMs: 0,
-            // birthtime: new Date(),
-            birthtimeMs: 0,
-            blksize: 0,
-            blocks: 0,
-            // ctime: new Date(),
-            ctimeMs: 0,
-            dev: 0,
-            gid: 0,
-            ino: 0,
-            // mode: 0,
-            // mtime: new Date(),
-            mtimeMs: 0,
-            nlink: 0,
-            rdev: 0,
-            // size: 0,
-            uid: 0,
-            isFile: () => false,
-            // isDirectory: () => false,
-            isBlockDevice: () => false,
-            isCharacterDevice: () => false,
-            isSymbolicLink: () => false,
-            isFIFO: () => false,
-            isSocket: () => false,
+      const mockedFs = jest.mocked(fs);
+      mockedFs.statSync.mockImplementation(((path: string): fs.Stats => {
+        return {
+          // atime: new Date(),
+          atimeMs: 0,
+          // birthtime: new Date(),
+          birthtimeMs: 0,
+          blksize: 0,
+          blocks: 0,
+          // ctime: new Date(),
+          ctimeMs: 0,
+          dev: 0,
+          gid: 0,
+          ino: 0,
+          // mode: 0,
+          // mtime: new Date(),
+          mtimeMs: 0,
+          nlink: 0,
+          rdev: 0,
+          // size: 0,
+          uid: 0,
+          isFile: () => false,
+          // isDirectory: () => false,
+          isBlockDevice: () => false,
+          isCharacterDevice: () => false,
+          isSymbolicLink: () => false,
+          isFIFO: () => false,
+          isSocket: () => false,
 
-            ...getFileSystemByPath(path, fileTree).stat,
-          };
-        }),
+          ...getFileSystemByPath(path, fileTree).stat,
+        };
+      }) as typeof fs.statSync);
 
-        readFileSync: jest.fn((path: string): string | Buffer => {
-          const PROPS_JSON_PATH = process.env.TTP_APP_PROPERTIES_FILE_PATH;
-          if (!PROPS_JSON_PATH) {
-            throw 'TTP_APP_PROPERTIES_FILE_PATH env not found';
-          }
+      mockedFs.readFileSync.mockImplementation(((
+        path: string
+      ): string | Buffer => {
+        const PROPS_JSON_PATH = process.env.TTP_APP_PROPERTIES_FILE_PATH;
+        if (!PROPS_JSON_PATH) {
+          throw 'TTP_APP_PROPERTIES_FILE_PATH env not found';
+        }
 
-          const PROPS_JSON_FILENAME = PROPS_JSON_PATH.slice(
-            PROPS_JSON_PATH.lastIndexOf('/') + 1
-          );
-          console.log('filename: ', PROPS_JSON_FILENAME);
+        const PROPS_JSON_FILENAME = PROPS_JSON_PATH.slice(
+          PROPS_JSON_PATH.lastIndexOf('/') + 1
+        );
 
-          if (path.includes(PROPS_JSON_FILENAME)) {
-            console.log('return...');
-            return createClientPropertiesJson({
-              ROOT: 'ROOT',
-              targets: ['/target'],
-              LAST_UPDATE: LAST_UPDATE.toISOString(),
-            });
-          }
+        if (path.includes(PROPS_JSON_FILENAME)) {
+          return createClientPropertiesJson({
+            ROOT: 'ROOT',
+            targets: ['/target'],
+            LAST_UPDATE: LAST_UPDATE.toISOString(),
+          });
+        }
 
-          return Buffer.from(path);
-        }),
+        return Buffer.from(path);
+      }) as typeof fs.readFileSync);
 
-        readdirSync: jest.fn((path: string): string[] => {
-          const targetDirectory = getFileSystemByPath(path, fileTree);
+      mockedFs.readdirSync.mockImplementation(((path: string): string[] => {
+        const targetDirectory = getFileSystemByPath(path, fileTree);
 
-          if (isDirectory(targetDirectory)) {
-            return Object.keys(targetDirectory.files);
-          }
+        if (isDirectory(targetDirectory)) {
+          return Object.keys(targetDirectory.files);
+        }
 
-          throw `${targetDirectory.name} is not a directory`;
-        }),
-      }));
-      jest.unstable_mockModule('node:http', () => ({}));
+        throw `${targetDirectory.name} is not a directory`;
+      }) as typeof fs.readdirSync);
 
       const LAST_UPDATE = new Date();
 
