@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { afterAll, describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
 import { sep } from 'path';
 import { PropertiesJson } from '../src/utils/Properties';
@@ -18,97 +18,38 @@ jest.mock('../src/utils/request');
 jest.mock('../src/utils/File/Exif');
 
 describe('Upload', () => {
+  afterAll(() => {
+    jest.resetAllMocks();
+  });
+
   it('Upload media files that were updated after LAST_UPDATE', async () => {
-    console.log('---------------------------------------------');
-    // Mocking..
-
-    // fs
-    // SKIP: chmodSync
-    // DONE: statSync
-    // DONE: readFileSync
-    // DONE: createReadStream
-    // SKIP: writeFileSync
-    // SKIP: unlinkSync
-    // DONE: readdirSync
-
-    // Exif, File, Ignores, getNewFiles
-    // DONE: Properties
-    // DONE: log
-    // createRequestFunction, send
+    // Mocking
     const mockedFs = jest.mocked(fs);
-    mockedFs.statSync.mockImplementation(((path: string): fs.Stats => {
-      return {
-        // atime: new Date(),
-        atimeMs: 0,
-        // birthtime: new Date(),
-        birthtimeMs: 0,
-        blksize: 0,
-        blocks: 0,
-        // ctime: new Date(),
-        ctimeMs: 0,
-        dev: 0,
-        gid: 0,
-        ino: 0,
-        // mode: 0,
-        // mtime: new Date(),
-        mtimeMs: 0,
-        nlink: 0,
-        rdev: 0,
-        // size: 0,
-        uid: 0,
-        isFile: () => false,
-        // isDirectory: () => false,
-        isBlockDevice: () => false,
-        isCharacterDevice: () => false,
-        isSymbolicLink: () => false,
-        isFIFO: () => false,
-        isSocket: () => false,
-
-        ...getFileSystemByPath(path, fileTree).stat,
-      };
-    }) as typeof fs.statSync);
-
-    mockedFs.readFileSync.mockImplementation(((
-      path: string
-    ): string | Buffer => {
-      const PROPS_JSON_PATH = process.env.TTP_APP_PROPERTIES_FILE_PATH;
-      if (!PROPS_JSON_PATH) {
-        throw 'TTP_APP_PROPERTIES_FILE_PATH env not found';
-      }
-
-      const PROPS_JSON_FILENAME = PROPS_JSON_PATH.slice(
-        PROPS_JSON_PATH.lastIndexOf('/') + 1
-      );
-
-      if (path.includes(PROPS_JSON_FILENAME)) {
-        return createClientPropertiesJson({
-          ROOT: 'ROOT',
-          targets: ['/target'],
-          LAST_UPDATE: LAST_UPDATE.toISOString(),
-        });
-      }
-
-      return Buffer.from(path);
-    }) as typeof fs.readFileSync);
-
-    mockedFs.readdirSync.mockImplementation(((path: string): string[] => {
-      const targetDirectory = getFileSystemByPath(path, fileTree);
-
-      if (isDirectory(targetDirectory)) {
-        return Object.keys(targetDirectory.files);
-      }
-
-      throw `${targetDirectory.name} is not a directory`;
-    }) as typeof fs.readdirSync);
-
     const LAST_UPDATE = new Date();
 
-    const mockedSend = jest.mocked(send);
-    mockedSend.mockImplementation(() => Promise.resolve(200));
+    mockedFs.statSync.mockImplementation(mockStatSync(getFileTree));
+    mockedFs.readdirSync.mockImplementation(mockReaddirSync(getFileTree));
+    mockedFs.readFileSync.mockImplementation(
+      mockReadFileSyncForPropsJson(LAST_UPDATE)
+    );
+
+    jest.mocked(send).mockImplementation(() => Promise.resolve(200));
 
     jest
       .spyOn(process, 'exit')
       .mockImplementation((() => {}) as typeof process.exit);
+
+    function getFileTree(): FileSystemMock {
+      return createDirectoryMock({
+        name: 'ROOT',
+        childs: [
+          createDirectoryMock({
+            name: 'target',
+            childs: [...oldFiles, ...newFiles],
+          }),
+        ],
+      });
+    }
 
     // Given
     const oldFiles: FileSystemMock[] = ['old.jpg', 'old.mp4', 'old.png']
@@ -127,18 +68,7 @@ describe('Upload', () => {
         return file;
       });
 
-    const fileTree: FileSystemMock = createDirectoryMock({
-      name: 'ROOT',
-      childs: [
-        createDirectoryMock({
-          name: 'target',
-          childs: [...oldFiles, ...newFiles],
-        }),
-      ],
-    });
-
     // When
-    console.log('start client');
     await import('../src/client');
 
     // Then
@@ -149,6 +79,75 @@ describe('Upload', () => {
     expect(uploadedFiles.sort()).toEqual(newFileNames.sort());
   });
 });
+
+function mockStatSync(getFileTree: () => FileSystemMock) {
+  return ((path: string): fs.Stats => {
+    return {
+      // atime: new Date(),
+      atimeMs: 0,
+      // birthtime: new Date(),
+      birthtimeMs: 0,
+      blksize: 0,
+      blocks: 0,
+      // ctime: new Date(),
+      ctimeMs: 0,
+      dev: 0,
+      gid: 0,
+      ino: 0,
+      // mode: 0,
+      // mtime: new Date(),
+      mtimeMs: 0,
+      nlink: 0,
+      rdev: 0,
+      // size: 0,
+      uid: 0,
+      isFile: () => false,
+      // isDirectory: () => false,
+      isBlockDevice: () => false,
+      isCharacterDevice: () => false,
+      isSymbolicLink: () => false,
+      isFIFO: () => false,
+      isSocket: () => false,
+
+      ...getFileSystemByPath(path, getFileTree()).stat,
+    };
+  }) as typeof fs.statSync;
+}
+
+function mockReaddirSync(getFileTree: () => FileSystemMock) {
+  return ((path: string): string[] => {
+    const targetDirectory = getFileSystemByPath(path, getFileTree());
+
+    if (isDirectory(targetDirectory)) {
+      return Object.keys(targetDirectory.files);
+    }
+
+    throw `${targetDirectory.name} is not a directory`;
+  }) as typeof fs.readdirSync;
+}
+
+function mockReadFileSyncForPropsJson(LAST_UPDATE: Date) {
+  return ((path: string): string | Buffer => {
+    const PROPS_JSON_PATH = process.env.TTP_APP_PROPERTIES_FILE_PATH;
+    if (!PROPS_JSON_PATH) {
+      throw 'TTP_APP_PROPERTIES_FILE_PATH env not found';
+    }
+
+    const PROPS_JSON_FILENAME = PROPS_JSON_PATH.slice(
+      PROPS_JSON_PATH.lastIndexOf('/') + 1
+    );
+
+    if (path.endsWith(PROPS_JSON_FILENAME)) {
+      return createClientPropertiesJson({
+        ROOT: 'ROOT',
+        targets: ['/target'],
+        LAST_UPDATE: LAST_UPDATE.toISOString(),
+      });
+    }
+
+    return Buffer.from(path);
+  }) as typeof fs.readFileSync;
+}
 
 function getFileSystemByPath(
   path: string,
