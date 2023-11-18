@@ -1,5 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import fs from 'fs';
+import { sep } from 'path';
 import { PropertiesJson } from '../src/utils/Properties';
 // @ts-ignore
 import { send } from '../src/utils/request';
@@ -148,7 +149,11 @@ function getFileSystemByPath(
   dir: FileSystemMock
 ): FileSystemMock {
   // 맨 앞 '/' 는 제외하고, depth 별로 분리
-  const [, root, ...paths] = path.split('/');
+
+  const [root, ...paths] = path
+    .replace(new RegExp(`^\\${sep}+`), '')
+    .split(sep);
+
   // check root
   if (root !== dir.name) {
     throw `Can not found root directory ${root}`;
