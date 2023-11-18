@@ -92,6 +92,74 @@ describe('Upload', () => {
   });
 });
 
+describe('Ignore', () => {
+  beforeEach(() => {
+    jest.mocked(send).mockImplementation(() => Promise.resolve(200));
+    jest
+      .spyOn(process, 'exit')
+      .mockImplementation((() => {}) as typeof process.exit);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('Ignore specific directory', async () => {
+    // Mocking
+    const mockedFs = jest.mocked(fs);
+
+    mockedFs.statSync.mockImplementation(mockStatSync(getFileTree));
+    mockedFs.readdirSync.mockImplementation(mockReaddirSync(getFileTree));
+    mockedFs.readFileSync.mockImplementation(
+      mockReadFileSyncForPropsJson({
+        ROOT: 'ROOT',
+        targets: ['target'],
+        ignores: ['ignore-me/'],
+        LAST_UPDATE: new Date(0).toISOString(),
+      })
+    );
+
+    function getFileTree(): FileSystemMock {
+      return createDirectoryMock({
+        name: 'ROOT',
+        childs: [
+          createDirectoryMock({
+            name: 'target',
+            childs: [
+              ...targets,
+              createDirectoryMock({
+                name: 'ignore-me',
+                childs: execpts,
+              }),
+            ],
+          }),
+        ],
+      });
+    }
+
+    // Given
+    const targets: FileSystemMock[] = ['img.jpg', 'img2.jpeg', 'vdo.jpg'].map(
+      name => createFileMock(name)
+    );
+
+    const execpts: FileSystemMock[] = [
+      'not-me.jpg',
+      'nah.mp4',
+      'never.png',
+    ].map(name => createFileMock(name));
+
+    // When
+    await runClient();
+
+    // Then
+    const uploadedFiles = send.mock.calls.map(
+      ([file]: [File, boolean, unknown]) => file.name
+    );
+    const targetNames = targets.map(({ name }) => name);
+    expect(uploadedFiles.sort()).toEqual(targetNames.sort());
+  });
+});
+
 function mockStatSync(getFileTree: () => FileSystemMock) {
   return ((path: string): fs.Stats => {
     return {
