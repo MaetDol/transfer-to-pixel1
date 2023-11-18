@@ -99,7 +99,74 @@ describe('Ignore', () => {
     jest.resetAllMocks();
   });
 
-  it('Ignore specific directory', async () => {
+  it.each([
+    {
+      label: 'specific directory',
+      structure: `
+        ROOT/
+        ├─ target/
+        │  ├─ img.jpg
+        │  ├─ img2.jpeg
+        │  ├─ vdo.mp4
+        │  │
+        │  ├─ ignore-me/
+        │  │  ├─ not-me.jpg
+        │  │  ├─ nah.mp4
+        │  │  ├─ never.png
+        `,
+      targets: ['target'],
+      ignore: ['ignore-me/'],
+      expected: ['img.jpg', 'img2.jpeg', 'vdo.mp4'],
+    },
+    {
+      label: 'file extension',
+      structure: `
+        ROOT/
+        ├─ target/
+        │  ├─ img.jpg
+        │  ├─ img2.png
+        │  ├─ img3.jpeg
+        │  ├─ vdo.mp4
+        `,
+      targets: ['target'],
+      ignore: ['.jpeg'],
+      expected: ['img.jpg', 'img2.png', 'vdo.mp4'],
+    },
+    {
+      label: 'specific file name',
+      structure: `
+        ROOT/
+        ├─ target/
+        │  ├─ img.jpg
+        │  ├─ not-me.jpg
+        │  ├─ vdo.mp4
+        │  │
+        │  ├─ sub_dir/
+        │  │  ├─ not-me.jpg
+        │  │  ├─ nah.mp4
+        │  │  ├─ yay.png
+        `,
+      ignore: ['not-me.jpg'],
+      targets: ['target'],
+      expected: ['img.jpg', 'vdo.mp4', 'nah.mp4', 'yay.png'],
+    },
+    {
+      label: 'asterisk',
+      structure: `
+        ROOT/
+        ├─ target/
+        │  ├─ img.jpg
+        │  ├─ vdo.mp4
+        │  │
+        │  ├─ sub/
+        │  │  ├─ not-me.jpg
+        │  │  ├─ nah.mp4
+        `,
+      ignore: ['vdo.*', 'target/**/not-me.jpg'],
+      targets: ['target'],
+      expected: ['img.jpg', 'nah.mp4'],
+    },
+  ])('Ignore $label', async ({ expected, ignore, structure, targets }) => {
     // Mocking
     const mockedFs = jest.mocked(fs);
 
@@ -108,27 +175,15 @@ describe('Ignore', () => {
     mockedFs.readFileSync.mockImplementation(
       mockReadFileSyncForPropsJson({
         ROOT: 'ROOT',
-        targets: ['target'],
-        ignores: ['ignore-me/'],
+        targets: targets,
+        ignores: ignore,
         LAST_UPDATE: new Date(0).toISOString(),
       })
     );
 
     function getFileTree(): FileSystemMock {
       // Given
-      const files = parseFileSystemString(`
-        ROOT/
-        ├─ target/
-        │  ├─ img.jpg
-        │  ├─ img2.jpeg
-        │  ├─ vdo.jpg
-        │  │
-        │  ├─ ignore-me/
-        │  │  ├─ not-me.jpg
-        │  │  ├─ nah.mp4
-        │  │  ├─ never.png
-      `);
-
+      const files = parseFileSystemString(structure);
       return files.files['ROOT'];
     }
 
@@ -139,8 +194,7 @@ describe('Ignore', () => {
     const uploadedFiles = send.mock.calls.map(
       ([file]: [File, boolean, unknown]) => file.name
     );
-    const targetNames = ['img.jpg', 'img2.jpeg', 'vdo.jpg'];
-    expect(uploadedFiles.sort()).toEqual(targetNames.sort());
+    expect(uploadedFiles.sort()).toEqual(expected.sort());
   });
 });
 
