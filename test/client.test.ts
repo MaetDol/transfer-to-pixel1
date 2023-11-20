@@ -13,7 +13,7 @@ import { PropertiesJson } from '../src/utils/Properties';
 // @ts-ignore
 import { send } from '../src/utils/request';
 // @ts-ignore
-import { File } from '../src/utils/File';
+import { Exif, File } from '../src/utils/File';
 
 jest.mock('fs');
 jest.mock('http');
@@ -195,6 +195,67 @@ describe('Ignore', () => {
       ([file]: [File, boolean, unknown]) => file.name
     );
     expect(uploadedFiles.sort()).toEqual(expected.sort());
+  });
+});
+
+describe('EXIF', () => {
+  const _3min_ago = new Date(Date.now() - 3 * 60 * 1000);
+
+  beforeEach(() => {
+    const getFileTree = () =>
+      parseFileSystemString(`
+        ROOT
+        ├─ modify.jpg :: (birthtime: ${_3min_ago.toISOString()}) 
+    `).files['ROOT'];
+
+    const mockedFs = jest.mocked(fs);
+    mockedFs.statSync.mockImplementation(mockStatSync(getFileTree));
+    mockedFs.readdirSync.mockImplementation(mockReaddirSync(getFileTree));
+    mockedFs.readFileSync.mockImplementation(
+      mockReadFileSyncForPropsJson({
+        ROOT: 'ROOT',
+        targets: ['.'],
+      })
+    );
+
+    jest.mocked(send).mockImplementation(() => Promise.resolve(200));
+    jest
+      .spyOn(process, 'exit')
+      .mockImplementation((() => {}) as typeof process.exit);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('Write EXIF using birthtime if not exists', async () => {
+    // Mocking
+    // Given
+    jest
+      .spyOn(Exif.prototype, 'getDateTime')
+      .mockImplementation(jest.fn().mockReturnValue(undefined));
+    const spySetDateTime = jest.spyOn(Exif.prototype, 'setDateTime');
+
+    // When
+    await runClient();
+
+    // Then
+    expect(spySetDateTime.mock.calls).toEqual([[_3min_ago.getTime()]]);
+  });
+
+  it('DO NOT write EXIF if exists', async () => {
+    // Mocking
+    // Given
+    jest
+      .spyOn(Exif.prototype, 'getDateTime')
+      .mockImplementation(jest.fn().mockReturnValue(_3min_ago));
+    const spySetDateTime = jest.spyOn(Exif.prototype, 'setDateTime');
+
+    // When
+    await runClient();
+
+    // Then
+    expect(spySetDateTime).not.toHaveBeenCalled();
   });
 });
 
