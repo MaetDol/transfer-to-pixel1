@@ -1,37 +1,53 @@
+type Producer<R> = {
+  producer: () => Promise<R>;
+  size: number;
+  resolve: (value: R) => void;
+  reject: (value: unknown) => void;
+};
+
 export class PromisePool {
-  constructor(limit) {
+  limit: number = 0;
+  onBoardSize: number = 0;
+  pool: Producer<unknown>[] = [];
+
+  constructor(limit: number) {
     this.limit = limit;
     this.onBoardSize = 0;
-    this.clearHandler = [];
     this.pool = [];
   }
 
-  push(producer, size) {
+  push<T>(producer: () => Promise<T>, size: number) {
     const { pool, onBoardSize, limit } = this;
-    const promise = new Promise((resolve, reject) => {
-      producer.resolve = resolve;
-      producer.reject = reject;
+    const producerInfo: Producer<T> = {
+      producer,
+      size,
+      resolve: () => {},
+      reject: () => {},
+    };
+    const promise = new Promise<T>((resolve, reject) => {
+      producerInfo.resolve = resolve;
+      producerInfo.reject = reject;
     });
 
     if (onBoardSize < limit) {
-      this.consume([producer, size]);
+      this.consume(producerInfo);
     } else {
-      pool.push([producer, size]);
+      pool.push(producerInfo);
     }
 
     return promise;
   }
 
-  consume([producer, size]) {
-    this.onBoardSize += size;
+  consume(producerInfo: Producer<unknown>) {
+    this.onBoardSize += producerInfo.size;
 
-    producer()
-      .then(producer.resolve)
-      .catch(producer.reject)
-      .finally(_ => {
-        this.onBoardSize -= size;
+    producerInfo
+      .producer()
+      .then(producerInfo.resolve)
+      .catch(producerInfo.reject)
+      .finally(() => {
+        this.onBoardSize -= producerInfo.size;
         if (!this.pool.length && !this.onBoardSize) {
-          this.clearHandler.forEach(fnc => fnc());
         } else {
           this.next();
         }
@@ -41,11 +57,8 @@ export class PromisePool {
   next() {
     const { pool, limit } = this;
     while (pool.length && this.onBoardSize < limit) {
-      this.consume(pool.shift());
+      const producerInfo = pool.shift();
+      if (producerInfo) this.consume(producerInfo);
     }
-  }
-
-  onClear(fnc) {
-    this.clearHandler.push(fnc);
   }
 }
