@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const Properties = require('./Properties');
+const { Properties } = require('./Properties');
 
 const { LOG_DIR, LOGGING, ROOT } = new Properties().value;
 

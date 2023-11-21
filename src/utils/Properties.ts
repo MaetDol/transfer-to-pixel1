@@ -18,7 +18,7 @@ export type PropertiesJson = {
   UPLOAD_DIR: string;
 };
 
-class Properties {
+export class Properties {
   public path: string = '';
   private _prop: PropertiesJson;
 
@@ -60,5 +60,3 @@ class Properties {
     fs.writeFileSync(this.path, JSON.stringify(prop, null, 4));
   }
 }
-
-export default Properties;
