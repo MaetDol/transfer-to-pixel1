@@ -1,18 +1,16 @@
 import type { ReadStream } from 'fs';
 import type { OutgoingHttpHeaders } from 'http';
 import http from 'http';
-// @ts-ignore
+import type { File } from './File';
 import { PromisePool } from './PromisePool';
 import { log } from './logger';
-// @ts-ignore
-import type { File } from './File';
 
 const TIMEOUT_MS = 1000 * 60 * 5;
 const MAX_POOL_SIZE_BYTE = 300 * 1024 * 1024;
 
 const promisePool = new PromisePool(MAX_POOL_SIZE_BYTE);
 
-async function send(
+export async function send(
   file: File,
   doDelete: boolean,
   fetcher: (
@@ -45,9 +43,12 @@ async function send(
     });
 }
 
-function createRequestFunction(hostname: string, port: `${number}` | number) {
+export function createRequestFunction(
+  hostname: string,
+  port: `${number}` | number
+) {
   return function request(headers: OutgoingHttpHeaders, content: ReadStream) {
-    return new Promise((resolve, reject) => {
+    return new Promise<number>((resolve, reject) => {
       const timeoutId = setTimeout(() => reject('Timedout'), TIMEOUT_MS);
       const req = http.request(
         {
@@ -60,8 +61,11 @@ function createRequestFunction(hostname: string, port: `${number}` | number) {
           res.on('error', e => log.err(`Response error? ${e}`));
           res.on('data', () => {});
           res.on('end', () => {
-            if (res.statusCode !== 200) reject(res.statusCode);
             clearTimeout(timeoutId);
+            if (res.statusCode === undefined || res.statusCode !== 200) {
+              reject(res.statusCode);
+              return;
+            }
             resolve(res.statusCode);
           });
         }
@@ -85,8 +89,3 @@ function createRequestFunction(hostname: string, port: `${number}` | number) {
     });
   };
 }
-
-module.exports = {
-  send,
-  createRequestFunction,
-};

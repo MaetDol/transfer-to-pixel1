@@ -8,7 +8,7 @@ export class File {
   mediaType: string | null;
   size: number;
   mode: number;
-  birthTime: number;
+  birthTime: Date;
 
   constructor(filePath: string) {
     const stat = fs.statSync(filePath);
@@ -23,14 +23,16 @@ export class File {
 
     this.size = stat.size;
     this.mode = stat.mode;
-    this.birthTime = Math.min(
-      ...[
-        stat.birthtime.getTime(),
-        stat.atime.getTime(),
-        stat.mtime.getTime(),
-        stat.ctime.getTime(),
-        Date.now(),
-      ]
+    this.birthTime = new Date(
+      Math.min(
+        ...[
+          stat.birthtime.getTime(),
+          stat.atime.getTime(),
+          stat.mtime.getTime(),
+          stat.ctime.getTime(),
+          Date.now(),
+        ]
+      )
     );
   }
 
@@ -52,7 +54,7 @@ export class File {
     return fs.createReadStream(this.path);
   }
 
-  write(data: string, as = this.path) {
+  write(data: string | Buffer, as = this.path) {
     fs.writeFileSync(as, data);
   }
 

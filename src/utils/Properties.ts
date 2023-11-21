@@ -9,7 +9,7 @@ export type PropertiesJson = {
   // Client
   SERVER: string;
   PORT: `${number}` | number;
-  LAST_UPDATE: string | Date;
+  LAST_UPDATE: string;
   targets: string[];
   ignores: string[];
   DELETE_AFTER_UPLOAD: boolean;
@@ -18,9 +18,13 @@ export type PropertiesJson = {
   UPLOAD_DIR: string;
 };
 
+export type PropertiesSet = Omit<PropertiesJson, 'LAST_UPDATE'> & {
+  LAST_UPDATE: Date;
+};
+
 export class Properties {
   public path: string = '';
-  private _prop: PropertiesJson;
+  private _prop: PropertiesSet;
 
   constructor(pathToJson?: string) {
     if (pathToJson === undefined || pathToJson === null) {
@@ -55,7 +59,7 @@ export class Properties {
     this._prop = prop;
   }
 
-  write(prop: PropertiesJson) {
+  write(prop: PropertiesSet) {
     this._prop = prop;
     fs.writeFileSync(this.path, JSON.stringify(prop, null, 4));
   }

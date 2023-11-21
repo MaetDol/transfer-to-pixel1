@@ -1,4 +1,3 @@
-// @ts-ignore
 import { convertSeparator, escape, isDirectory } from './utils';
 
 export class Ignores {

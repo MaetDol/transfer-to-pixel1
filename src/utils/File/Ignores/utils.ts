@@ -1,8 +1,8 @@
-function isDirectory(path: string) {
+export function isDirectory(path: string) {
   return path.slice(-1) === '/';
 }
 
-function convertSeparator(path: string) {
+export function convertSeparator(path: string) {
   return path.replace(/\\/g, '/');
 }
 
@@ -17,7 +17,7 @@ const asteriskInText = (part: string) =>
       escapeRegExp(group1 ?? group3) + '[^/]*' + escapeRegExp(group2 ?? group4)
   );
 
-function escape(part: string) {
+export function escape(part: string) {
   const escapeSingleAsterisk = singleAsterisk(part);
   if (escapeSingleAsterisk !== part) {
     return escapeSingleAsterisk;
@@ -32,9 +32,3 @@ function escape(part: string) {
   }
   return escapeRegExp(part);
 }
-
-module.exports = {
-  isDirectory,
-  convertSeparator,
-  escape,
-};
