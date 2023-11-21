@@ -3,7 +3,7 @@ import http from 'http';
 import path from 'path';
 // @ts-ignore
 import log from './utils/logger.js';
-import { Properties } from './utils/Properties.js';
+import { Properties } from './utils/Properties';
 
 const prop = new Properties();
 const { ROOT, PORT, UPLOAD_DIR } = prop.value;
@@ -24,6 +24,16 @@ http
 
       res.setHeader('Access-Control-Allow-Headers', '*');
       res.setHeader('Access-Control-Allow-Origin', '*');
+
+      if (req.method === undefined) {
+        res.writeHead(400).end();
+        return;
+      }
+
+      if (req.headers['content-type'] === undefined) {
+        res.writeHead(400).end();
+        return;
+      }
 
       if (req.method.toUpperCase() === 'OPTIONS') {
         res.writeHead(400).end();
@@ -55,14 +65,14 @@ http
       const uploadPath = path.resolve(UPLOAD, filename);
       req.on('error', e => {
         log.err(`Got an error on Request: ${e}`);
-        fs.rm(uploadPath);
+        fs.rm(uploadPath, () => {});
         res.writeHead(400).end();
       });
 
       // Stream 으로 body 를 write 한다
       req.pipe(fs.createWriteStream(uploadPath));
 
-      req.on('end', _ => {
+      req.on('end', () => {
         res.writeHead(200).end();
         log.info(`${filename} - Done! 200`);
       });
