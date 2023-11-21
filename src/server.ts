@@ -1,8 +1,9 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-const log = require('./utils/logger.js');
-const { Properties } = require('./utils/Properties.js');
+import fs from 'fs';
+import http from 'http';
+import path from 'path';
+// @ts-ignore
+import log from './utils/logger.js';
+import { Properties } from './utils/Properties.js';
 
 const prop = new Properties();
 const { ROOT, PORT, UPLOAD_DIR } = prop.value;
