@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { Exif, File, Ignores, getNewFiles } from './utils/File';
+import { Exif, File, Ignores, createFile, getNewFiles } from './utils/File';
 import { Properties } from './utils/Properties';
 import { log } from './utils/logger';
 import { createRequestFunction, send } from './utils/request';
@@ -37,10 +37,10 @@ export async function runClient() {
 
       // jpeg EXIF 에 timestamp 가 없을 경우,
       // File birthtime 으로 exif 를 설정한 복사본 이미지를 만듭니다
-      let isCloned = false;
+      let clonedFile: File | null = null;
       try {
         if (file.isJpeg() && !hasTimestamp(file)) {
-          isCloned = rewriteTimestamp(file);
+          clonedFile = rewriteTimestamp(file);
         }
       } catch (e) {
         log.err(
@@ -48,16 +48,19 @@ export async function runClient() {
         );
       }
 
-      return send(file, DELETE_AFTER_UPLOAD, request)
-        .then((result_1: number) => {
+      return send(file, request)
+        .then((responseCode: number) => {
+          clonedFile?.delete();
+          if (DELETE_AFTER_UPLOAD) {
+            file.delete();
+          }
           log.info(`Upload is done "${d}"`, true);
-          return result_1;
+          return responseCode;
         })
         .catch((e_1: unknown) => {
           log.err(`Failed send file: ${d}, because ${e_1}`);
           return file;
-        })
-        .finally(() => isCloned && file.delete());
+        });
     })
   );
 

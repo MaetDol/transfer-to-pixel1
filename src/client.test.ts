@@ -81,7 +81,7 @@ describe('Upload', () => {
     // Then
     const uploadedFiles = jest
       .mocked(send)
-      .mock.calls.map(([file]: [File, boolean, unknown]) => file.name);
+      .mock.calls.map(([file]: [File, unknown]) => file.name);
     const newFileNames = ['img.jpg', 'img2.jpeg', 'vdo.mp4'];
     expect(uploadedFiles.sort()).toEqual(newFileNames.sort());
   });
@@ -193,7 +193,7 @@ describe('Ignore', () => {
     // Then
     const uploadedFiles = jest
       .mocked(send)
-      .mock.calls.map(([file]: [File, boolean, unknown]) => file.name);
+      .mock.calls.map(([file]: [File, unknown]) => file.name);
     expect(uploadedFiles.sort()).toEqual(expected.sort());
   });
 });

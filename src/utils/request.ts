@@ -12,7 +12,6 @@ const promisePool = new PromisePool(MAX_POOL_SIZE_BYTE);
 
 export async function send(
   file: File,
-  doDelete: boolean,
   fetcher: (
     headers: OutgoingHttpHeaders,
     fileStream: ReadStream
@@ -29,18 +28,12 @@ export async function send(
     return fetcher(headers, file.readAsStream());
   };
 
-  return promisePool
-    .push(_send, file.size)
-    .then((code: number) => {
-      if (doDelete) file.delete();
-      return code;
-    })
-    .catch((code: number) => {
-      log.err(
-        `Upload "${file.name}", ${file.readableSize()}, but got an : ${code}`
-      );
-      return { path: file.path, mode: file.mode };
-    });
+  return promisePool.push(_send, file.size).catch((code: number) => {
+    log.err(
+      `Upload "${file.name}", ${file.readableSize()}, but got an : ${code}`
+    );
+    return { path: file.path, mode: file.mode };
+  });
 }
 
 export function createRequestFunction(
