@@ -2,7 +2,7 @@ import type { ReadStream } from 'fs';
 import type { OutgoingHttpHeaders } from 'http';
 import http from 'http';
 // @ts-ignore
-import PromisePool from './PromisePool';
+import { PromisePool } from './PromisePool';
 // @ts-ignore
 import log from './logger.js';
 // @ts-ignore
