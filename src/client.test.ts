@@ -8,10 +8,10 @@ import {
 } from '@jest/globals';
 import fs from 'fs';
 import { sep } from 'path';
-import { runClient } from '../src/client';
-import { Exif, File } from '../src/utils/File';
-import { PropertiesJson } from '../src/utils/Properties';
-import { send } from '../src/utils/request';
+import { runClient } from './client';
+import { Exif, File } from './utils/File';
+import { PropertiesJson } from './utils/Properties';
+import { send } from './utils/request';
 
 jest.mock('fs');
 jest.mock('http');
