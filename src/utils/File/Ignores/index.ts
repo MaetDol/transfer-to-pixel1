@@ -1,7 +1,12 @@
-const { convertSeparator, escape, isDirectory } = require('./utils.js');
+import { convertSeparator, escape, isDirectory } from './utils';
 
-class Ignores {
-  constructor(pathes, ROOT = '') {
+export class Ignores {
+  ROOT: string;
+  pathes: string[];
+  dirPathes: RegExp[];
+  filePathes: RegExp[];
+
+  constructor(pathes: string[], ROOT = '') {
     ROOT = convertSeparator(ROOT);
     this.ROOT = isDirectory(ROOT) ? ROOT.slice(0, -1) : ROOT;
     this.pathes = pathes.map(convertSeparator);
@@ -9,7 +14,7 @@ class Ignores {
     this.filePathes = this.parse(pathes.filter(p => !isDirectory(p)));
   }
 
-  dir(path) {
+  dir(path: string) {
     path = convertSeparator(path);
     if (!isDirectory(path)) {
       path += '/';
@@ -17,12 +22,12 @@ class Ignores {
     return this.dirPathes.some(ignore => ignore.test(path));
   }
 
-  file(path) {
+  file(path: string) {
     path = convertSeparator(path);
     return this.filePathes.some(ignore => ignore.test(path));
   }
 
-  parse(pathes) {
+  parse(pathes: string[]) {
     const root = escape(this.ROOT);
     return pathes.map(path => {
       const parts = path.split('/');
@@ -47,5 +52,3 @@ class Ignores {
     });
   }
 }
-
-module.exports = Ignores;

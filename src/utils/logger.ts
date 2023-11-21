@@ -1,21 +1,21 @@
-const fs = require('fs');
-const path = require('path');
-const Properties = require('./Properties');
+import fs from 'fs';
+import path from 'path';
+import { Properties } from './Properties';
 
 const { LOG_DIR, LOGGING, ROOT } = new Properties().value;
 
 const BASE = path.join(ROOT, LOG_DIR);
 
-module.exports = {
-  info: (obj, isDisplayOnly) => {
+export const log = {
+  info: (obj: unknown, isDisplayOnly?: boolean) => {
     write(`[INFO] ${stringify(obj)}`, isDisplayOnly);
   },
-  err: (obj, isDisplayOnly) => {
+  err: (obj: unknown, isDisplayOnly?: boolean) => {
     write(`[ERROR] ${stringify(obj)}`, isDisplayOnly);
   },
 };
 
-function write(str, displayOnly) {
+function write(str: string, displayOnly?: boolean) {
   if (!LOGGING) return;
 
   if (displayOnly) {
@@ -30,15 +30,18 @@ function write(str, displayOnly) {
   }
 
   fs.writeFileSync(
-    path.resolve(dirPath, `./${pad(month)}${pad(date)}.log`),
+    path.resolve(
+      dirPath,
+      `./${pad(month.toString())}${pad(date.toString())}.log`
+    ),
     str + '\n',
     { flag: 'a' }
   );
   console.log(str);
 }
 
-function pad(v) {
-  return v.toString().padStart(2, 0);
+function pad(v: string) {
+  return v.toString().padStart(2, '0');
 }
 
 function now() {
@@ -50,9 +53,12 @@ function now() {
   };
 }
 
-function stringify(input) {
+function stringify(input: unknown): string {
+  if (typeof input === 'string') {
+    return input;
+  }
   if (typeof input === 'object') {
     return JSON.stringify(input, null, 2);
   }
-  return input;
+  return String(input);
 }

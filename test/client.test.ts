@@ -9,18 +9,18 @@ import {
 import fs from 'fs';
 import { sep } from 'path';
 import { runClient } from '../src/client';
-import { PropertiesJson } from '../src/utils/Properties';
-// @ts-ignore
-import { send } from '../src/utils/request';
-// @ts-ignore
 import { Exif, File } from '../src/utils/File';
+import { PropertiesJson } from '../src/utils/Properties';
+import { send } from '../src/utils/request';
 
 jest.mock('fs');
 jest.mock('http');
 
 jest.mock('../src/utils/logger', () => ({
-  info: console.log,
-  err: console.warn,
+  log: {
+    info: console.log,
+    err: console.warn,
+  },
 }));
 jest.mock('../src/utils/request');
 jest.mock('../src/utils/File/Exif');
@@ -79,9 +79,9 @@ describe('Upload', () => {
     await runClient();
 
     // Then
-    const uploadedFiles = send.mock.calls.map(
-      ([file]: [File, boolean, unknown]) => file.name
-    );
+    const uploadedFiles = jest
+      .mocked(send)
+      .mock.calls.map(([file]: [File, boolean, unknown]) => file.name);
     const newFileNames = ['img.jpg', 'img2.jpeg', 'vdo.mp4'];
     expect(uploadedFiles.sort()).toEqual(newFileNames.sort());
   });
@@ -191,9 +191,9 @@ describe('Ignore', () => {
     await runClient();
 
     // Then
-    const uploadedFiles = send.mock.calls.map(
-      ([file]: [File, boolean, unknown]) => file.name
-    );
+    const uploadedFiles = jest
+      .mocked(send)
+      .mock.calls.map(([file]: [File, boolean, unknown]) => file.name);
     expect(uploadedFiles.sort()).toEqual(expected.sort());
   });
 });
@@ -240,7 +240,7 @@ describe('EXIF', () => {
     await runClient();
 
     // Then
-    expect(spySetDateTime.mock.calls).toEqual([[_3min_ago.getTime()]]);
+    expect(spySetDateTime.mock.calls).toEqual([[_3min_ago]]);
   });
 
   it('DO NOT write EXIF if exists', async () => {

@@ -1,11 +1,7 @@
 import fs from 'fs';
-// @ts-ignore
 import { Exif, File, Ignores, getNewFiles } from './utils/File';
-// @ts-ignore
-import Properties from './utils/Properties';
-// @ts-ignore
-import * as log from './utils/logger';
-// @ts-ignore
+import { Properties } from './utils/Properties';
+import { log } from './utils/logger';
 import { createRequestFunction, send } from './utils/request';
 
 if (process.env.TTP_APP_PRODUCTION) {

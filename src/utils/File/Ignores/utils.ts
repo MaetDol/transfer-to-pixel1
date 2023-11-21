@@ -1,22 +1,23 @@
-function isDirectory(path) {
+export function isDirectory(path: string) {
   return path.slice(-1) === '/';
 }
 
-function convertSeparator(path) {
+export function convertSeparator(path: string) {
   return path.replace(/\\/g, '/');
 }
 
-const escapeRegExp = part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const singleAsterisk = part => part.replace(/^\*$/, '[^/]+');
-const doubleAsterisk = part => part.replace(/^\*{2}$/, '([^/]+/?)+');
-const asteriskInText = part =>
+const escapeRegExp = (part: string) =>
+  part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const singleAsterisk = (part: string) => part.replace(/^\*$/, '[^/]+');
+const doubleAsterisk = (part: string) => part.replace(/^\*{2}$/, '([^/]+/?)+');
+const asteriskInText = (part: string) =>
   part.replace(
     /([^*]*)\*([^*]+)|([^*]+)\*([^*]*)/,
     (_, group1, group2, group3, group4) =>
       escapeRegExp(group1 ?? group3) + '[^/]*' + escapeRegExp(group2 ?? group4)
   );
 
-function escape(part) {
+export function escape(part: string) {
   const escapeSingleAsterisk = singleAsterisk(part);
   if (escapeSingleAsterisk !== part) {
     return escapeSingleAsterisk;
@@ -31,9 +32,3 @@ function escape(part) {
   }
   return escapeRegExp(part);
 }
-
-module.exports = {
-  isDirectory,
-  convertSeparator,
-  escape,
-};
