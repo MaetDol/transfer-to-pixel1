@@ -1,4 +1,4 @@
-module.exports = class PromisePool {
+export class PromisePool {
   constructor(limit) {
     this.limit = limit;
     this.onBoardSize = 0;
@@ -48,4 +48,4 @@ module.exports = class PromisePool {
   onClear(fnc) {
     this.clearHandler.push(fnc);
   }
-};
+}
