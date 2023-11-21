@@ -3,7 +3,7 @@ import path from 'path';
 import { log } from '../logger';
 import type { Ignores } from './Ignores';
 
-function lookupNewFile(dir: string, ignore: Ignores, LAST_UPDATE: Date) {
+export function lookupNewFile(dir: string, ignore: Ignores, LAST_UPDATE: Date) {
   const result: string[] = [];
   const dirs: string[] = [dir];
   while (dirs.length) {
@@ -31,7 +31,7 @@ function lookupNewFile(dir: string, ignore: Ignores, LAST_UPDATE: Date) {
   return result;
 }
 
-function contentTypeOf(ext: string) {
+export function contentTypeOf(ext: string) {
   if (ext.match(/jpe?g|gif|png|bmp|tiff/i)) {
     return 'image';
   }
@@ -40,7 +40,7 @@ function contentTypeOf(ext: string) {
   }
 }
 
-function getNewFiles(
+export function getNewFiles(
   ROOT: string,
   dirs: string[],
   ignores: Ignores,
@@ -58,9 +58,3 @@ function getNewFiles(
     })
     .flat();
 }
-
-module.exports = {
-  lookupNewFile,
-  contentTypeOf,
-  getNewFiles,
-};
