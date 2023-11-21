@@ -8,10 +8,10 @@ import {
 } from '@jest/globals';
 import fs from 'fs';
 import { sep } from 'path';
-import { runClient } from '../src/client';
-import { Exif, File } from '../src/utils/File';
-import { PropertiesJson } from '../src/utils/Properties';
-import { send } from '../src/utils/request';
+import { runClient } from './client';
+import { Exif, File } from './utils/File';
+import { PropertiesJson } from './utils/Properties';
+import { send } from './utils/request';
 
 jest.mock('fs');
 jest.mock('http');
@@ -81,7 +81,7 @@ describe('Upload', () => {
     // Then
     const uploadedFiles = jest
       .mocked(send)
-      .mock.calls.map(([file]: [File, boolean, unknown]) => file.name);
+      .mock.calls.map(([file]: [File, unknown]) => file.name);
     const newFileNames = ['img.jpg', 'img2.jpeg', 'vdo.mp4'];
     expect(uploadedFiles.sort()).toEqual(newFileNames.sort());
   });
@@ -193,7 +193,7 @@ describe('Ignore', () => {
     // Then
     const uploadedFiles = jest
       .mocked(send)
-      .mock.calls.map(([file]: [File, boolean, unknown]) => file.name);
+      .mock.calls.map(([file]: [File, unknown]) => file.name);
     expect(uploadedFiles.sort()).toEqual(expected.sort());
   });
 });

@@ -54,10 +54,6 @@ export class File {
     return fs.createReadStream(this.path);
   }
 
-  write(data: string | Buffer, as = this.path) {
-    fs.writeFileSync(as, data);
-  }
-
   readableSize() {
     const SUFFIX_SET = ['B', 'KB', 'MB', 'GB', 'TB'];
     let suffix = 0;
