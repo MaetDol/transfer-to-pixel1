@@ -86,21 +86,21 @@ function hasTimestamp(file: File) {
   return exif.getDateTime() !== undefined;
 }
 
-function rewriteTimestamp(file: File) {
+function rewriteTimestamp(file: File): File | null {
   try {
     const exif = new Exif(file.read().toString('binary'));
     exif.setDateTime(file.birthTime);
 
     const MODIFIED_PATH = file.path.replace(file.name, `__${file.name}`);
-    file.write(exif.getJpegBinary(), MODIFIED_PATH);
-    file.path = MODIFIED_PATH;
+    createFile(MODIFIED_PATH, exif.getJpegBinary());
+    const copiedFile = new File(MODIFIED_PATH);
 
     log.info(`\t\tRewrite dateTime EXIF to ${file.name}`);
 
-    return true;
+    return copiedFile;
   } catch (e) {
     log.err(`Failed to modify exif at ${file.path}\n\terr: ${e}`);
   }
 
-  return false;
+  return null;
 }

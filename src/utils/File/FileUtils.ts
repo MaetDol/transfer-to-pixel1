@@ -58,3 +58,7 @@ export function getNewFiles(
     })
     .flat();
 }
+
+export function createFile(fullPath: string, data: string | Buffer) {
+  fs.writeFileSync(fullPath, data);
+}
