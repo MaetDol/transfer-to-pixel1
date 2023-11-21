@@ -48,7 +48,7 @@ export class Ignores {
         parts[i] = escape(parts[i]);
       }
 
-      return new RegExp(parts.join('/'));
+      return new RegExp(parts.join('/'), 'i');
     });
   }
 }

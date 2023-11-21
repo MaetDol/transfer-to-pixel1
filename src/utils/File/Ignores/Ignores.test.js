@@ -83,3 +83,39 @@ describe('Ignore with asterisk', () => {
     expect(filtered.sort()).toEqual(skipIgnore.sort());
   });
 });
+
+describe('Case insensitive', () => {
+  test('directory', () => {
+    // Given
+    const rules = ['/a/B/', '/d/'];
+    const ignores = [
+      '/a/b/a.test',
+      '/a/B/b.test',
+      '/A/b/yay.tt',
+      '/a/B',
+      '/d',
+      '/d/c.t',
+      '/D/e/qqq',
+    ];
+
+    // When
+    const ignore = new Ignores(rules);
+    const filtered = ignores.filter(path => !ignore.dir(path));
+
+    // Then
+    expect(filtered).toEqual([]);
+  });
+
+  test('file', () => {
+    // Given
+    const rules = ['a.txt', 'B.TXT'];
+    const ignores = ['/a/a.txt', '/a/b.txt'];
+
+    // When
+    const ignore = new Ignores(rules);
+    const filtered = ignores.filter(path => !ignore.file(path));
+
+    // Then
+    expect(filtered).toEqual([]);
+  });
+});
