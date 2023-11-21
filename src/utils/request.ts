@@ -3,8 +3,7 @@ import type { OutgoingHttpHeaders } from 'http';
 import http from 'http';
 // @ts-ignore
 import { PromisePool } from './PromisePool';
-// @ts-ignore
-import log from './logger.js';
+import { log } from './logger';
 // @ts-ignore
 import type { File } from './File';
 

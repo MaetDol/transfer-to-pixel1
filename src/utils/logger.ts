@@ -1,12 +1,12 @@
-const fs = require('fs');
-const path = require('path');
-const { Properties } = require('./Properties');
+import fs from 'fs';
+import path from 'path';
+import { Properties } from './Properties';
 
 const { LOG_DIR, LOGGING, ROOT } = new Properties().value;
 
 const BASE = path.join(ROOT, LOG_DIR);
 
-module.exports = {
+export const log = {
   info: (obj, isDisplayOnly) => {
     write(`[INFO] ${stringify(obj)}`, isDisplayOnly);
   },

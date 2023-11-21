@@ -2,8 +2,7 @@ import fs from 'fs';
 // @ts-ignore
 import { Exif, File, Ignores, getNewFiles } from './utils/File';
 import { Properties } from './utils/Properties';
-// @ts-ignore
-import * as log from './utils/logger';
+import { log } from './utils/logger';
 // @ts-ignore
 import { createRequestFunction, send } from './utils/request';
 

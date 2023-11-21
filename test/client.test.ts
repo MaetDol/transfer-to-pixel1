@@ -19,8 +19,10 @@ jest.mock('fs');
 jest.mock('http');
 
 jest.mock('../src/utils/logger', () => ({
-  info: console.log,
-  err: console.warn,
+  log: {
+    info: console.log,
+    err: console.warn,
+  },
 }));
 jest.mock('../src/utils/request');
 jest.mock('../src/utils/File/Exif');

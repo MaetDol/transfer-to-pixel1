@@ -1,9 +1,8 @@
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
-// @ts-ignore
-import log from './utils/logger';
 import { Properties } from './utils/Properties';
+import { log } from './utils/logger';
 
 const prop = new Properties();
 const { ROOT, PORT, UPLOAD_DIR } = prop.value;
