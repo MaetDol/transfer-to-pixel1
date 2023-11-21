@@ -1,4 +1,5 @@
-const piexif = require('piexifjs');
+// @ts-ignore
+import piexif from 'piexifjs';
 
 const formatter = new Intl.DateTimeFormat('ko-kr', {
   year: 'numeric',
@@ -10,33 +11,30 @@ const formatter = new Intl.DateTimeFormat('ko-kr', {
   hour12: false,
 });
 
-const getFormatParts = date => {
+const getFormatParts = (date: Date) => {
   const rawParts = formatter.formatToParts(date);
 
   return rawParts.reduce((parts, part) => {
     parts[part.type] = part.value;
     return parts;
-  }, {});
+  }, {} as Record<Intl.DateTimeFormatPartTypes, string>);
 };
 
-const formatToExifDateTime = date => {
+const formatToExifDateTime = (date: Date) => {
   const { year, month, day, hour, minute, second } = getFormatParts(date);
 
   return `${year}:${month}:${day} ${hour}:${minute}:${second}`;
 };
 
-class Exif {
-  exif = {
-    '0th': {},
+export class Exif {
+  exif: {
+    Exif: any;
+  } = {
     Exif: {},
-    GPS: {},
-    Interop: {},
-    '1st': {},
-    thumbnail: null,
   };
   jpgBinaryString = '';
 
-  constructor(jpegBinaryString) {
+  constructor(jpegBinaryString: string) {
     this.jpgBinaryString = jpegBinaryString;
     this.exif = piexif.load(jpegBinaryString);
   }
@@ -48,7 +46,7 @@ class Exif {
     );
   }
 
-  setDateTime(date) {
+  setDateTime(date: Date) {
     const formattedDate = formatToExifDateTime(date);
     this.exif.Exif[piexif.ExifIFD.DateTimeOriginal] = formattedDate;
     this.exif.Exif[piexif.ExifIFD.DateTimeDigitized] = formattedDate;
@@ -60,5 +58,3 @@ class Exif {
     return Buffer.from(piexif.insert(exifStr, bin), 'binary');
   }
 }
-
-module.exports = Exif;
