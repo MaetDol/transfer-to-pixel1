@@ -1,4 +1,4 @@
-const { convertSeparator, escape, isDirectory } = require('./utils.js');
+const { convertSeparator, escape, isDirectory } = require('./utils');
 
 class Ignores {
   constructor(pathes, ROOT = '') {

@@ -1,6 +1,6 @@
 module.exports = {
-  File: require('./File.js'),
+  File: require('./File'),
   Ignores: require('./Ignores'),
-  Exif: require('./Exif.js'),
-  ...require('./FileUtils.js'),
+  Exif: require('./Exif'),
+  ...require('./FileUtils'),
 };

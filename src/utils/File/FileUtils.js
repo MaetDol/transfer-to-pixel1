@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const log = require('../logger.js');
+const log = require('../logger');
 
 function lookupNewFile(dir, ignore, LAST_UPDATE) {
   const result = [];
