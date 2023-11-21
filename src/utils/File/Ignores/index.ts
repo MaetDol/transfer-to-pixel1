@@ -2,7 +2,12 @@
 import { convertSeparator, escape, isDirectory } from './utils';
 
 export class Ignores {
-  constructor(pathes, ROOT = '') {
+  ROOT: string;
+  pathes: string[];
+  dirPathes: RegExp[];
+  filePathes: RegExp[];
+
+  constructor(pathes: string[], ROOT = '') {
     ROOT = convertSeparator(ROOT);
     this.ROOT = isDirectory(ROOT) ? ROOT.slice(0, -1) : ROOT;
     this.pathes = pathes.map(convertSeparator);
@@ -10,7 +15,7 @@ export class Ignores {
     this.filePathes = this.parse(pathes.filter(p => !isDirectory(p)));
   }
 
-  dir(path) {
+  dir(path: string) {
     path = convertSeparator(path);
     if (!isDirectory(path)) {
       path += '/';
@@ -18,12 +23,12 @@ export class Ignores {
     return this.dirPathes.some(ignore => ignore.test(path));
   }
 
-  file(path) {
+  file(path: string) {
     path = convertSeparator(path);
     return this.filePathes.some(ignore => ignore.test(path));
   }
 
-  parse(pathes) {
+  parse(pathes: string[]) {
     const root = escape(this.ROOT);
     return pathes.map(path => {
       const parts = path.split('/');
