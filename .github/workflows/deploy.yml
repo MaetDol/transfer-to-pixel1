@@ -11,7 +11,7 @@ jobs:
 
       - name: npm install, build
         run: |
-          npm install
+          npm clean-install
           npm run build
 
       - name: Git config
