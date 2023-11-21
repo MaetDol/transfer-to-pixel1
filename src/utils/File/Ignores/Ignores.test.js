@@ -1,4 +1,4 @@
-const Ignores = require('./index');
+const { Ignores } = require('./index');
 
 describe('Ignore without asterisk', () => {
   test('directories', () => {

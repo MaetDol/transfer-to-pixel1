@@ -1,6 +1,7 @@
-const { convertSeparator, escape, isDirectory } = require('./utils');
+// @ts-ignore
+import { convertSeparator, escape, isDirectory } from './utils';
 
-class Ignores {
+export class Ignores {
   constructor(pathes, ROOT = '') {
     ROOT = convertSeparator(ROOT);
     this.ROOT = isDirectory(ROOT) ? ROOT.slice(0, -1) : ROOT;
@@ -47,5 +48,3 @@ class Ignores {
     });
   }
 }
-
-module.exports = Ignores;
