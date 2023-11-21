@@ -1,14 +1,23 @@
-const PromisePool = require('./PromisePool.js');
-const http = require('http');
-const log = require('./logger.js');
-const { ReadStream } = require('fs');
+import type { ReadStream } from 'fs';
+import type { OutgoingHttpHeaders } from 'http';
+import http from 'http';
+import type { File } from './File';
+import { PromisePool } from './PromisePool';
+import { log } from './logger';
 
 const TIMEOUT_MS = 1000 * 60 * 5;
 const MAX_POOL_SIZE_BYTE = 300 * 1024 * 1024;
 
 const promisePool = new PromisePool(MAX_POOL_SIZE_BYTE);
 
-async function send(file, doDelete, fetcher) {
+export async function send(
+  file: File,
+  doDelete: boolean,
+  fetcher: (
+    headers: OutgoingHttpHeaders,
+    fileStream: ReadStream
+  ) => Promise<number>
+) {
   const headers = {
     'Content-Type': `${file.mediaType}/${file.ext}`,
     'Content-Disposition': `attachment; filename=\"${encodeURI(file.name)}\"`,
@@ -22,11 +31,11 @@ async function send(file, doDelete, fetcher) {
 
   return promisePool
     .push(_send, file.size)
-    .then(code => {
+    .then((code: number) => {
       if (doDelete) file.delete();
       return code;
     })
-    .catch(code => {
+    .catch((code: number) => {
       log.err(
         `Upload "${file.name}", ${file.readableSize()}, but got an : ${code}`
       );
@@ -34,9 +43,12 @@ async function send(file, doDelete, fetcher) {
     });
 }
 
-function createRequestFunction(hostname, port) {
-  return function request(headers, content) {
-    return new Promise((resolve, reject) => {
+export function createRequestFunction(
+  hostname: string,
+  port: `${number}` | number
+) {
+  return function request(headers: OutgoingHttpHeaders, content: ReadStream) {
+    return new Promise<number>((resolve, reject) => {
       const timeoutId = setTimeout(() => reject('Timedout'), TIMEOUT_MS);
       const req = http.request(
         {
@@ -47,10 +59,13 @@ function createRequestFunction(hostname, port) {
         },
         res => {
           res.on('error', e => log.err(`Response error? ${e}`));
-          res.on('data', _ => 0);
-          res.on('end', _ => {
-            if (res.statusCode !== 200) reject(res.statusCode);
+          res.on('data', () => {});
+          res.on('end', () => {
             clearTimeout(timeoutId);
+            if (res.statusCode === undefined || res.statusCode !== 200) {
+              reject(res.statusCode);
+              return;
+            }
             resolve(res.statusCode);
           });
         }
@@ -74,8 +89,3 @@ function createRequestFunction(hostname, port) {
     });
   };
 }
-
-module.exports = {
-  send,
-  createRequestFunction,
-};

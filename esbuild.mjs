@@ -19,6 +19,21 @@ const copyPropsFile = {
   },
 };
 
+/** @type {import('esbuild').Plugin} */
+const logBuildStatus = {
+  name: 'Log build status',
+  setup(build) {
+    build.onStart(() => {
+      console.clear();
+      console.log('Build start..');
+    });
+
+    build.onEnd(() => {
+      console.log('Build complete.');
+    });
+  },
+};
+
 build();
 async function build() {
   const shouldWatch = process.argv.some(arg => arg === '--watch');
@@ -35,7 +50,7 @@ async function build() {
     bundle: true,
     platform: 'node',
     outdir: './dist',
-    plugins: [copyPropsFile],
+    plugins: [logBuildStatus, copyPropsFile],
     define,
   });
 

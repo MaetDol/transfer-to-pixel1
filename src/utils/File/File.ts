@@ -1,24 +1,38 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-class File {
-  constructor(filePath) {
+export class File {
+  name: string;
+  ext: string;
+  path: string;
+  mediaType: string | null;
+  size: number;
+  mode: number;
+  birthTime: Date;
+
+  constructor(filePath: string) {
     const stat = fs.statSync(filePath);
-    this.name = filePath.split(path.sep).pop();
+    const name = filePath.split(path.sep).pop();
+    if (name === undefined) {
+      throw new Error(`Cannot found filename of ${filePath}`);
+    }
+    this.name = name;
     this.ext = path.extname(this.name).slice(1);
     this.path = filePath;
     this.mediaType = this.mediaTypeOf();
 
     this.size = stat.size;
     this.mode = stat.mode;
-    this.birthTime = Math.min(
-      ...[
-        stat.birthtime,
-        stat.atime,
-        stat.mtime,
-        stat.ctime,
-        new Date(),
-      ].filter(t => t instanceof Date)
+    this.birthTime = new Date(
+      Math.min(
+        ...[
+          stat.birthtime.getTime(),
+          stat.atime.getTime(),
+          stat.mtime.getTime(),
+          stat.ctime.getTime(),
+          Date.now(),
+        ]
+      )
     );
   }
 
@@ -40,7 +54,7 @@ class File {
     return fs.createReadStream(this.path);
   }
 
-  write(data, as = this.path) {
+  write(data: string | Buffer, as = this.path) {
     fs.writeFileSync(as, data);
   }
 
@@ -63,5 +77,3 @@ class File {
     return /jpe?g/i.test(this.ext);
   }
 }
-
-module.exports = File;

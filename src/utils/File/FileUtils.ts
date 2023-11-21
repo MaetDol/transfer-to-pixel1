@@ -1,12 +1,17 @@
-const fs = require('fs');
-const path = require('path');
-const log = require('../logger.js');
+import fs from 'fs';
+import path from 'path';
+import { log } from '../logger';
+import type { Ignores } from './Ignores';
 
-function lookupNewFile(dir, ignore, LAST_UPDATE) {
-  const result = [];
-  const dirs = [dir];
+export function lookupNewFile(dir: string, ignore: Ignores, LAST_UPDATE: Date) {
+  const result: string[] = [];
+  const dirs: string[] = [dir];
   while (dirs.length) {
     const currentDir = dirs.pop();
+    if (currentDir === undefined) {
+      throw new Error(`Failed lookup directory: target is undefined`);
+    }
+
     if (ignore.dir(currentDir)) continue;
 
     fs.readdirSync(currentDir).forEach(name => {
@@ -26,7 +31,7 @@ function lookupNewFile(dir, ignore, LAST_UPDATE) {
   return result;
 }
 
-function contentTypeOf(ext) {
+export function contentTypeOf(ext: string) {
   if (ext.match(/jpe?g|gif|png|bmp|tiff/i)) {
     return 'image';
   }
@@ -35,10 +40,15 @@ function contentTypeOf(ext) {
   }
 }
 
-function getNewFiles(ROOT, dirs, ignores, LAST_UPDATE) {
+export function getNewFiles(
+  ROOT: string,
+  dirs: string[],
+  ignores: Ignores,
+  LAST_UPDATE: Date
+) {
   return dirs
     .map(d => {
-      let newFiles = [];
+      let newFiles: string[] = [];
       try {
         newFiles = lookupNewFile(path.join(ROOT, d), ignores, LAST_UPDATE);
       } catch (e) {
@@ -48,9 +58,3 @@ function getNewFiles(ROOT, dirs, ignores, LAST_UPDATE) {
     })
     .flat();
 }
-
-module.exports = {
-  lookupNewFile,
-  contentTypeOf,
-  getNewFiles,
-};
