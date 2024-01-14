@@ -29,10 +29,7 @@ export async function send(
   };
 
   return promisePool.push(_send, file.size).catch((code: number) => {
-    log.err(
-      `Upload "${file.name}", ${file.readableSize()}, but got an : ${code}`
-    );
-    return { path: file.path, mode: file.mode };
+    throw `Upload "${file.name}", ${file.readableSize()}, but got an : ${code}`;
   });
 }
 

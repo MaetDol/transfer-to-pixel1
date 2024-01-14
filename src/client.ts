@@ -50,7 +50,6 @@ export async function runClient() {
 
       return send(file, request)
         .then((responseCode: number) => {
-          clonedFile?.delete();
           if (DELETE_AFTER_UPLOAD) {
             file.delete();
           }
@@ -60,6 +59,9 @@ export async function runClient() {
         .catch((e_1: unknown) => {
           log.err(`Failed send file: ${d}, because ${e_1}`);
           return file;
+        })
+        .finally(() => {
+          clonedFile?.delete();
         });
     })
   );
