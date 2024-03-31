@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs, { promises as fsPromise } from 'fs';
 import http from 'http';
 import path from 'path';
 import { Properties } from './utils/Properties';
@@ -64,7 +64,7 @@ http
       const uploadPath = path.resolve(UPLOAD, filename);
       req.on('error', e => {
         log.err(`Got an error on Request: ${e}`);
-        fs.rm(uploadPath, () => {});
+        fsPromise.rm(uploadPath).catch(() => {});
         res.writeHead(400).end();
       });
 
