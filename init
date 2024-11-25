@@ -9,7 +9,8 @@ if [ ! -d "$WORK_DIR" ]; then
     git clone --branch release https://github.com/MaetDol/$REPO_NAME.git &&
     echo -e "\n\nSetup is done. You can achive your subject" && 
     echo "type cd $REPO_NAME then" && 
-    echo "\"node server.js\" or \"node client.js\""
+    echo "\"node server.js\" or \"node client.js\"" &&
+    termux-storage-get
 else
   echo "Setup is already done"
 fi
